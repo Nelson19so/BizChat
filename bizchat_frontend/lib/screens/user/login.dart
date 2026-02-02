@@ -11,13 +11,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
-    bool isChecked = false;
-
     return MaterialApp(
       home: Scaffold(
         // backgroundColor: AppColors.secondaryWhite,
         appBar: AppBar(
-          title: const Text('SignUp'),
+          title: const Text('Log In'),
           titleTextStyle: TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.w600,
@@ -27,10 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                print('hello');
+                Navigator.pushNamed(context, '/register');
               },
               child: Text(
-                'login',
+                'Sign Up',
                 style: TextStyle(fontSize: 19, color: AppColors.primaryColor),
               ),
             ),
@@ -51,78 +49,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: 'First Name',
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.secondaryGray4,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                fillColor: AppColors.secondaryGray3,
-                                filled: true,
-                                labelStyle: TextStyle(
-                                  color: AppColors.secondaryGray5,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                labelText: 'Second Name',
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.secondaryGray4,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                fillColor: AppColors.secondaryGray3,
-                                filled: true,
-                                labelStyle: TextStyle(
-                                  color: AppColors.secondaryGray5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 16),
-
                       Container(
                         child: TextField(
                           decoration: InputDecoration(
                             labelText: 'Email or Phone Number',
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.secondaryGray4,
-                              ),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            fillColor: AppColors.secondaryGray3,
-                            filled: true,
-                            labelStyle: TextStyle(
-                              color: AppColors.secondaryGray5,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 16),
-
-                      Container(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Password',
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: AppColors.secondaryGray4,
@@ -144,65 +74,115 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      SizedBox(height: 32),
+                      SizedBox(height: 16),
 
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        // mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(
-                            child: Checkbox(
-                              activeColor: AppColors.secondaryGray3,
-                              checkColor: AppColors.primaryColor,
-                              // shape: CircleBorder(),
-                              side: BorderSide(
-                                color: AppColors.secondaryGray4,
-                                width: 2,
-                              ),
-                              value: isChecked,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  isChecked = value!;
-                                  print(isChecked);
-                                });
-                              },
-                            ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryGray3,
+                          border: Border.all(
+                            color: AppColors.secondaryGray4,
+                            width: 1.0,
                           ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  label: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                      vertical: 4.0,
+                                    ),
+                                    color: AppColors.secondaryGray3,
+                                    child: Text(
+                                      'Password',
+                                      style: TextStyle(
+                                        color: AppColors.secondaryGray5,
+                                      ),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: AppColors.secondaryGray3,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: AppColors.secondaryGray3,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  fillColor: Colors.white,
+                                  filled: false,
+                                ),
+                              ),
+                            ),
 
-                          Expanded(
-                            child: const Text(
-                              'I would like to receive your newsletter and other promotional information.',
-                              style: TextStyle(
-                                color: AppColors.secondaryGray8,
-                                fontSize: 16,
+                            Container(
+                              child: TextButton(
+                                onPressed: () {
+                                  print('Hello show pwd');
+                                },
+                                child: Text(
+                                  'Show',
+                                  style: TextStyle(
+                                    fontSize: 19,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          minimumSize: const Size(200, 50),
+                        ),
+                        onPressed: () => print('hello Login button pressed'),
+                        child: Text(
+                          'Log In',
+                          style: TextStyle(
+                            color: AppColors.secondaryWhite,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      minimumSize: const Size(200, 50),
                     ),
-                    onPressed: () => print('hello world'),
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: AppColors.secondaryWhite,
-                        fontSize: 16,
+
+                    SizedBox(height: 16),
+
+                    SizedBox(
+                      child: TextButton(
+                        onPressed: () {
+                          print('hello Forgot password pressed');
+                        },
+                        child: Text(
+                          'Forgot your password?',
+                          style: TextStyle(
+                            fontSize: 19,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),

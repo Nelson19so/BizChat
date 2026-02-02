@@ -1,5 +1,6 @@
 import 'package:bizchat_frontend/screens/chat/home.dart';
 import 'package:bizchat_frontend/screens/user/login.dart';
+import 'package:bizchat_frontend/screens/user/register.dart';
 import 'package:flutter/material.dart';
 
 class AppRoute {
@@ -13,6 +14,7 @@ class AppRoute {
   static final Map<String, WidgetBuilder> routes = {
     homeScreen: (_) => HomeScreen(),
     loginScreen: (_) => LoginScreen(),
+    registerScreen: (_) => Register(),
   };
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
