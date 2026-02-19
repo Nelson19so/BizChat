@@ -10,6 +10,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Scaffold(body: Text('Login screen')));
+    return MaterialApp(home: Scaffold(body: Text('Home screen')));
   }
 }

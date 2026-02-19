@@ -1,4 +1,5 @@
 import 'package:bizchat_frontend/core/theme.dart';
+import 'package:bizchat_frontend/services/authService.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
@@ -9,6 +10,8 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+  final authservice = Authservice();
+
   @override
   Widget build(BuildContext context) {
     bool isChecked = false;
