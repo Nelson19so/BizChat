@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Authservice {
   static const _storage = FlutterSecureStorage();
-  static const _baseUrl = 'http://localhost:10.0.2.2:8000/api/auth';
+  static const _baseUrl = 'http://127.0.0.1:8000/user';
 
   // Register user + Auto-login
   Future<Map<String, dynamic>> register({
@@ -14,7 +14,7 @@ class Authservice {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/register'),
+      Uri.parse('$_baseUrl/register/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'first_name': first_name,
