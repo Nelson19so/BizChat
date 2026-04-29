@@ -1,4 +1,4 @@
-import 'package:bizchat_frontend/core/theme.dart';
+import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {

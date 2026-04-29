@@ -1,6 +1,6 @@
-import 'package:bizchat_frontend/screens/chat/home.dart';
-import 'package:bizchat_frontend/screens/user/login.dart';
-import 'package:bizchat_frontend/screens/user/register.dart';
+import 'package:bizchat_frontend/features/auth/screens/login.dart';
+import 'package:bizchat_frontend/features/auth/screens/register.dart';
+import 'package:bizchat_frontend/features/chat/screens/home.dart';
 import 'package:flutter/material.dart';
 
 class AppRoute {

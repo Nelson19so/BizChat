@@ -1,8 +1,9 @@
 import 'package:bizchat_frontend/config/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -12,9 +13,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BizChat',
-      onGenerateRoute: AppRoute.generateRoute,
-      initialRoute: AppRoute.loginScreen,
       debugShowCheckedModeBanner: false,
+
+      onGenerateRoute: AppRoute.generateRoute,
+      initialRoute: AppRoute.homeScreen,
     );
   }
 }
