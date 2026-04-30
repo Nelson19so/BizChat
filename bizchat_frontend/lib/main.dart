@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       onGenerateRoute: AppRoute.generateRoute,
-      initialRoute: AppRoute.homeScreen,
+      initialRoute: AppRoute.loginScreen,
     );
   }
 }

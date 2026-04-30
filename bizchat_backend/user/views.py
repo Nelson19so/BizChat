@@ -1,11 +1,30 @@
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializer import UserRegistrationSerializer, UserLoginSerializer
+from .serializer import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
 
 User = get_user_model()
+
+
+class UserProfileApiView(APIView):
+    """
+    User profile details
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.is_anonymous:
+            return Response(
+                {"error": "Authentication required"},
+                status=401
+            )
+            
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
 
 class UserRegistrationView(generics.CreateAPIView):
     """
@@ -26,7 +45,7 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response(
             {
                 'success': True,
-                'message': 'User registered successfully.',
+                'details': 'User registered successfully.',
                 "user": {
                     "id": user.id,
                     "email": user.email,
@@ -59,16 +78,13 @@ class UserLoginView(generics.GenericAPIView):
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
 
+        user_data = UserSerializer(user).data
+
         return Response(
             {
                 "success": True,
-                "message": "Login successful.",
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                },
+                "details": "Login successful.",
+                "user": user_data,
                 "tokens": {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
@@ -76,3 +92,5 @@ class UserLoginView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+

@@ -7,6 +7,13 @@ from django.contrib.auth import authenticate
 import re
 
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'first_name', 'last_name', 'is_active', 'is_staff')
+        
+
 NAME_REGEX = re.compile(r"^[A-Za-z]+$")
 
 def validate_name(value, field_name="name"):
@@ -32,6 +39,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     """
     Handles user registration with email-based authentication.
     """
+    first_name = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "First name is required.",
+            "blank": "First name cannot be empty."
+        }
+    )
+
+    last_name = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": "Last name is required.",
+            "blank": "Last name cannot be empty."
+        }
+    )
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
@@ -39,11 +61,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('email', 'first_name', 'last_name', 'password', 'confirm_password')
 
-
     def validate_email(self, value):
         value = value.lower()
+        
         if CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with that email already exists.")
+            raise serializers.ValidationError("Email already exists.")
         return value
 
     def validate_first_name(self, value):
@@ -87,7 +109,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 return CustomUser.objects.create_user(**validated_data)
         except IntegrityError:
             raise serializers.ValidationError({
-                "email": "A user with that email already exists."
+                "email": "Email already exists."
             })
 
 
@@ -103,21 +125,21 @@ class UserLoginSerializer(serializers.Serializer):
         password = attrs.get("password")
 
         if not email or not password:
-            raise serializers.ValidationError(
-                "Email and password are required."
-            )
+            raise serializers.ValidationError({
+                "details": "Email and password are required."
+            })
 
         user = authenticate(email=email, password=password)
 
         if not user:
-            raise serializers.ValidationError(
-                "Invalid email or password."
-            )
+            raise serializers.ValidationError({
+                "details": "Invalid email or password."
+            })
 
         if not user.is_active:
-            raise serializers.ValidationError(
-                "This account is inactive."
-            )
+            raise serializers.ValidationError({
+                "details": "This account is inactive."
+            })
 
         attrs["user"] = user
         return attrs
