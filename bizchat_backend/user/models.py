@@ -54,4 +54,14 @@ class CustomUser(AbstractUser):
 user profile model
 """
 class UserProfile(models.Model):
-    pass
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile'
+    )
+    profile_picture = models.ImageField(upload_to='avatar/', blank=True, null=True)
+    date_of_birth = models.DateTimeField(null=True, blank=True),
+    address = models.CharField(max_length=200, name=True, blank=True)
+    state = models.CharField(max_length=200, null=True, blank=True)
+    zip_code = models.IntegerField(max_length=4, null=False, blank=False)
+    country = models.CharField(max_length=200, null=True, blank=True)
+    phone_number = models.IntegerField(max_length=11, null=True, blank=True)
+    
