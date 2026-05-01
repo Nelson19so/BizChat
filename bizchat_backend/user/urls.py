@@ -1,9 +1,12 @@
 from django.urls import path
-from .views import UserRegistrationView, UserLoginView, UserProfileApiView
+from .views.auth_views import UserRegistrationView, UserLoginView
+from .views.profile_view import UserProfileApiView
 
 urlpatterns = [
-    # User registration and login endpoints
+    # User auth endpoints
     path('register/', UserRegistrationView.as_view(), name='register_user'),
     path('login/', UserLoginView.as_view(), name='login_user'),
+    
+    # User profile endpoints
     path('profile/', UserProfileApiView.as_view(), name='user_profile')
 ]

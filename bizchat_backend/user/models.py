@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 
-# Custom user manager
+"""
+Custom user manager
+"""
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -22,9 +24,10 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(email, password, **extra_fields)
-    
 
-# Custom user model
+"""
+Custom user model
+"""
 class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=30, blank=False, null=False)
     last_name = models.CharField(max_length=30, blank=False, null=False)
@@ -46,3 +49,9 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f'{self.email}'
+
+"""
+user profile model
+"""
+class UserProfile(models.Model):
+    pass

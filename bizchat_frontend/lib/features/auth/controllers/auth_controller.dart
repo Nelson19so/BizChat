@@ -66,9 +66,10 @@ class AuthController extends StateNotifier<AuthState> {
       );
 
       // Replace with real backend response
-      // final token = response.data["token"] ?? "fake_token_${DateTime.now()}";
-      //
-      // await storage.saveToken(token);
+      final access = response.data["token"]['access'];
+      final refresh = response.data["token"]['refresh'];
+
+      await storage.saveToken(refresh, access);
 
       state = state.copyWith(
         isLoading: false,
