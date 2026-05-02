@@ -17,9 +17,7 @@ def get_tokens_for_user(user):
     }
 
 class UserRegistrationView(generics.CreateAPIView):
-    """
-    API endpoint for user registration.
-    """
+    """API endpoint for user registration."""
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
@@ -79,9 +77,7 @@ class UserLoginView(generics.GenericAPIView):
 
 
 class LogoutUserApiView(APIView):
-    """
-    Logout authenticated user
-    """
+    """Logout authenticated user"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -100,9 +96,7 @@ class LogoutUserApiView(APIView):
 
 
 class DeleteUserApiView(APIView):
-    """
-    Delete user accounts
-    """
+    """Delete user account"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

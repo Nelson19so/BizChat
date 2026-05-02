@@ -9,26 +9,37 @@ import re
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = (
             'id', 
-            'profile_picture', 
             'email', 
             'first_name', 
             'last_name', 
             'is_active', 
-            'is_staff'
+            'is_staff',
+            'profile',
         )
         read_only_fields = ('id',)
 
-    def get_profile_picture(self, obj):
+    def get_profile(self, obj):
         profile = getattr(obj, 'profile', None)
-        if profile and profile.profile_picture:
-            return profile.profile_picture.url
-        return None
+
+        if not profile:
+            return None
+
+        return {
+            "profile_picture": profile.profile_picture.url if profile.profile_picture else None,
+            "date_of_birth": profile.date_of_birth,
+            "address": profile.address,
+            "state": profile.state,
+            "zip_code": profile.zip_code,
+            "country": profile.country,
+            "phone_number": profile.phone_number,
+            "created_at": profile.created_at,
+        }
         
 
 NAME_REGEX = re.compile(r"^[A-Za-z]+$")
@@ -53,9 +64,7 @@ def validate_name(value, field_name="name"):
     return value
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    """
-    Handles user registration with email-based authentication.
-    """
+    """Handles user registration with email-based authentication."""
     first_name = serializers.CharField(
         required=True,
         error_messages={
@@ -131,9 +140,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.Serializer):
-    """
-    Handles user login with email and password.
-    """
+    """Handles user login with email and password."""
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -166,9 +173,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'user', 'profile_picture', 'date_of_birth', 
-            'address', 'state', 'zip_code', 'country', 'phone_number'
+            'address', 'state', 'zip_code', 'country', 'phone_number', 
         ]
-        read_only_fields = ('user',)
+        read_only_fields = ('id', 'user', 'created_at')
 
     def validate_date_of_birth(self, value):
         if value and value.date() > date.today():
