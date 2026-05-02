@@ -4,8 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import authenticate
+from .utils import validate_name, validate_phone_number
 from datetime import date
-import re
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,27 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
             "created_at": profile.created_at,
         }
         
-
-NAME_REGEX = re.compile(r"^[A-Za-z]+$")
-
-def validate_name(value, field_name="name"):
-    value = value.strip()
-
-    if not value:
-        raise serializers.ValidationError(f"{field_name.capitalize()} is required.")
-
-    if len(value) < 2:
-        raise serializers.ValidationError(f"{field_name.capitalize()} must be at least 2 characters.")
-
-    if len(value) > 30:
-        raise serializers.ValidationError(f"{field_name.capitalize()} must be less than 30 characters.")
-
-    if not NAME_REGEX.match(value):
-        raise serializers.ValidationError(
-            f"{field_name.capitalize()} can only contain letters."
-        )
-
-    return value
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Handles user registration with email-based authentication."""
@@ -187,6 +166,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number must contain only digits.")
         if value and len(value) < 10:
             raise serializers.ValidationError("Phone number is too short.")
+        if UserProfile.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("Phone number is registered")
         return value
 
     def validate_zip_code(self, value):

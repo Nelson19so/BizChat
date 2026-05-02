@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from ..serializer import UserProfileSerializer, UserSerializer
 from rest_framework.response import Response
+from rest_framework import status
+from ..models import UserProfile
 
 User = get_user_model()
 
@@ -46,9 +48,31 @@ class UserProfileApiView(APIView):
     def patch(self, request):
         """Partial update: Update only provided fields"""
         profile = self.get_object()
-        # partial=True is the magic that makes it a PATCH
+        partial=True # is the magic that makes it a PATCH
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SearchUserByPhoneNumberApiView(APIView):
+    """Search user by phone number"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, phone_number):
+        phone_number = phone_number.strip()
+
+        user_profile = UserProfile.objects.filter(
+            phone_number=phone_number
+        ).first()
+
+        if not user_profile:
+            return Response(
+                {"details": "This user is not registered"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = UserSerializer(user_profile.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
