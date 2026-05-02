@@ -24,7 +24,7 @@ def validate_name(value, field_name="name"):
 
     return value
 
-
+# Phone number validtor
 def validate_phone_number(value, instance=None):
     value = value.strip()
 
