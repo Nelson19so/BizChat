@@ -1,12 +1,20 @@
 from django.urls import path
-from .views.auth_views import UserRegistrationView, UserLoginView
-from .views.profile_view import UserProfileApiView
+from .views.auth_views import (
+    UserRegistrationView, 
+    UserLoginView, 
+    LogoutUserApiView, 
+    DeleteUserApiView
+)
+from .views.profile_view import UserApiView, UserProfileApiView
 
 urlpatterns = [
     # User auth endpoints
     path('register/', UserRegistrationView.as_view(), name='register_user'),
     path('login/', UserLoginView.as_view(), name='login_user'),
+    path('logout/', LogoutUserApiView.as_view(), name='logout_user'),
+    path('delete_myaccount/', DeleteUserApiView.as_view(), name='delete_myaccount'),
     
     # User profile endpoints
-    path('profile/', UserProfileApiView.as_view(), name='user_profile')
+    path('me/', UserApiView.as_view(), name='my_accounts'),
+    path('profile/', UserProfileApiView.as_view(), name='my_accounts_profile')
 ]

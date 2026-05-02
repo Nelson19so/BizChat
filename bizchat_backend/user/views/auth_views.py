@@ -8,23 +8,13 @@ from rest_framework.views import APIView
 
 User = get_user_model()
 
-
-class UserProfileApiView(APIView):
-    """
-    User profile details
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        if request.user.is_anonymous:
-            return Response(
-                {"error": "Authentication required"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-            
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-
+# refresh token
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 class UserRegistrationView(generics.CreateAPIView):
     """
@@ -40,7 +30,7 @@ class UserRegistrationView(generics.CreateAPIView):
         user = serializer.save()
 
         # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
+        tokens = get_tokens_for_user(user)
 
         return Response(
             {
@@ -52,10 +42,7 @@ class UserRegistrationView(generics.CreateAPIView):
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                 },
-                "tokens": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
+                "tokens": tokens
             },
             status=status.HTTP_201_CREATED
         )
@@ -76,7 +63,7 @@ class UserLoginView(generics.GenericAPIView):
         user = serializer.validated_data["user"]
 
         # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
+        tokens = get_tokens_for_user(user)
 
         user_data = UserSerializer(user).data
 
@@ -85,12 +72,46 @@ class UserLoginView(generics.GenericAPIView):
                 "success": True,
                 "details": "Login successful.",
                 "user": user_data,
-                "tokens": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
+                "tokens": tokens
             },
             status=status.HTTP_200_OK,
         )
 
 
+class LogoutUserApiView(APIView):
+    """
+    Logout authenticated user
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh')
+            token = RefreshToken(refresh_token)
+
+            token.blacklist()
+            return Response(
+                {"message": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT
+            )
+        except Exception:
+            return Response(
+                {"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST
+            )    
+
+
+class DeleteUserApiView(APIView):
+    """
+    Delete user accounts
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response(
+            {"message": "Account deleted successfully."}, 
+            status=status.HTTP_204_NO_CONTENT
+        )

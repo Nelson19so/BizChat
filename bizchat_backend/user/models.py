@@ -10,6 +10,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError('email address is required')
         email = self.normalize_email(email)
+        extra_fields.pop('username', None) 
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
@@ -29,6 +30,7 @@ class CustomUserManager(BaseUserManager):
 Custom user model
 """
 class CustomUser(AbstractUser):
+    username = None
     first_name = models.CharField(max_length=30, blank=False, null=False)
     last_name = models.CharField(max_length=30, blank=False, null=False)
     email = models.EmailField(unique=True, blank=False, null=False)
@@ -58,10 +60,13 @@ class UserProfile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile'
     )
     profile_picture = models.ImageField(upload_to='avatar/', blank=True, null=True)
-    date_of_birth = models.DateTimeField(null=True, blank=True),
-    address = models.CharField(max_length=200, name=True, blank=True)
+    date_of_birth = models.DateTimeField(null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
     state = models.CharField(max_length=200, null=True, blank=True)
-    zip_code = models.IntegerField(max_length=4, null=False, blank=False)
+    zip_code = models.CharField(max_length=4, null=True, blank=True)
     country = models.CharField(max_length=200, null=True, blank=True)
-    phone_number = models.IntegerField(max_length=11, null=True, blank=True)
-    
+    phone_number = models.CharField(max_length=11, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email}"

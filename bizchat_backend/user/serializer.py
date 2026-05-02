@@ -1,17 +1,34 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import authenticate
+from datetime import date
 import re
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'first_name', 'last_name', 'is_active', 'is_staff')
+        fields = (
+            'id', 
+            'profile_picture', 
+            'email', 
+            'first_name', 
+            'last_name', 
+            'is_active', 
+            'is_staff'
+        )
+        read_only_fields = ('id',)
+
+    def get_profile_picture(self, obj):
+        profile = getattr(obj, 'profile', None)
+        if profile and profile.profile_picture:
+            return profile.profile_picture.url
+        return None
         
 
 NAME_REGEX = re.compile(r"^[A-Za-z]+$")
@@ -62,7 +79,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ('email', 'first_name', 'last_name', 'password', 'confirm_password')
 
     def validate_email(self, value):
-        value = value.lower()
+        value = value.lower().strip()
         
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already exists.")
@@ -143,3 +160,41 @@ class UserLoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            'user', 'profile_picture', 'date_of_birth', 
+            'address', 'state', 'zip_code', 'country', 'phone_number'
+        ]
+        read_only_fields = ('user',)
+
+    def validate_date_of_birth(self, value):
+        if value and value.date() > date.today():
+            raise serializers.ValidationError("Date of birth cannot be in the future.")
+        return value
+
+    def validate_phone_number(self, value):
+        if value and not value.isdigit():
+            raise serializers.ValidationError("Phone number must contain only digits.")
+        if value and len(value) < 10:
+            raise serializers.ValidationError("Phone number is too short.")
+        return value
+
+    def validate_zip_code(self, value):
+        if not value.isdigit() or len(value) != 4:
+            raise serializers.ValidationError("Zip code must be exactly 4 digits.")
+        return value
+
+    def validate(self, attrs):
+        country = attrs.get('country')
+        state = attrs.get('state')
+
+        if country and country.lower() and not state:
+            raise serializers.ValidationError({
+                "state": "State is required for addresses in a country"
+            })
+
+        return attrs
+
