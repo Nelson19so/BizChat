@@ -48,7 +48,7 @@ class UserProfileApiView(APIView):
     def patch(self, request):
         """Partial update: Update only provided fields"""
         profile = self.get_object()
-        partial=True # is the magic that makes it a PATCH
+        partial=True
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
