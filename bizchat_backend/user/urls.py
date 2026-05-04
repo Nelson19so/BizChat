@@ -8,6 +8,7 @@ from .views.auth_views import (
 from .views.profile_view import UserApiView, UserProfileApiView, SearchUserByPhoneNumberApiView
 from rest_framework_simplejwt.views import TokenRefreshView
 
+
 urlpatterns = [
     # User auth endpoints
     path('register/', UserRegistrationView.as_view(), name='register_user'),
@@ -16,7 +17,7 @@ urlpatterns = [
     path('delete_myaccount/', DeleteUserApiView.as_view(), name='delete_myaccount'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
-    # User profile endpoints
+    # User details/profile endpoints
     path('me/', UserApiView.as_view(), name='my_accounts'),
     path('profile/', UserProfileApiView.as_view(), name='my_accounts_profile'),
     path(

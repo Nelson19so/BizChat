@@ -19,7 +19,7 @@ class UserApiView(APIView):
                 {"error": "Authentication required"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-            
+
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
