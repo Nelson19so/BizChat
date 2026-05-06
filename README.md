@@ -112,7 +112,7 @@ BizChat/
 
 ---
 
-| Month   | Milestone                                                  |
+| week   | Milestone                                                  |
 | ------- | ---------------------------------------------------------- |
 | week 1 | Backend setup, user authentication, database configuration |
 | week 2 | Real-time chat implementation via WebSockets               |
