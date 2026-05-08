@@ -63,8 +63,7 @@ BizChat/
 ├── backend/
 │   ├── bizchat_project/         # Django project
 │   ├── chat/                    # Chat app
-│   ├── users/                   # User authentication and profiles
-│   ├── ai/                      # AI engine for suggestions and auto-replies
+│   ├── users/                   # User 
 │   └── manage.py
 │
 ├── frontend/
@@ -113,14 +112,14 @@ BizChat/
 
 ---
 
-| Month   | Milestone                                                  |
+| week   | Milestone                                                  |
 | ------- | ---------------------------------------------------------- |
-| Month 1 | Backend setup, user authentication, database configuration |
-| Month 2 | Real-time chat implementation via WebSockets               |
-| Month 3 | AI integration for chat suggestions and auto-replies       |
-| Month 4 | Frontend development using Flutter for chat UI             |
-| Month 5 | Multimedia support and notifications                       |
-| Month 6 | Testing, bug fixes, and deployment preparation             |
+| week 1 | Backend setup, user authentication, database configuration |
+| week 2 | Real-time chat implementation via WebSockets               |
+| week 2 | AI integration for chat suggestions and auto-replies       |
+| week 3 | Frontend development using Flutter for chat UI             |
+| week 3 | Multimedia support and notifications                       |
+| week 3 | Testing, bug fixes, and deployment preparation             |
 
 8. **Development Guidelines**
 
