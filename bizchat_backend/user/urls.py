@@ -5,7 +5,12 @@ from .views.auth_views import (
     LogoutUserApiView, 
     DeleteUserApiView
 )
-from .views.profile_view import UserApiView, UserProfileApiView, SearchUserByPhoneNumberApiView
+from .views.profile_view import (
+    UserApiView, 
+    UserProfileApiView, 
+    SearchUserByPhoneNumberApiView,
+    PublicProfileApiView
+)
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
@@ -21,7 +26,8 @@ urlpatterns = [
     path('me/', UserApiView.as_view(), name='my_accounts'),
     path('profile/', UserProfileApiView.as_view(), name='my_accounts_profile'),
     path(
-        'search/<str:phone_number>/', SearchUserByPhoneNumberApiView.as_view(),
+        'search/<int:phone_number>/', SearchUserByPhoneNumberApiView.as_view(),
         name='search_accounts'
     ),
+    path('public_user/<int:user_id>/', PublicProfileApiView.as_view(), name='public_user'),
 ]

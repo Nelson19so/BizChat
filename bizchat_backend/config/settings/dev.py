@@ -1,6 +1,5 @@
 from .base import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # Allowed hosts for development
@@ -15,14 +14,15 @@ DATABASES = {
     }
 }
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 
-
-# Media filles (Avatar, images, files)
-MEDIA_URL = '/media/'
-
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cors settings to allow requests from specified origins
 CORS_ALLOW_ALL_ORIGINS = True

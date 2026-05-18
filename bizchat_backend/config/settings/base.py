@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "corsheaders",
     
     'user.apps.UserConfig',
-    'chat.apps.ChatConfig',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -68,15 +68,6 @@ TEMPLATES = [
 # Use Channels as the ASGI application
 ASGI_APPLICATION = "config.asgi.application"
 
-# Redis layer for Channels
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -116,9 +107,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
-# Media config
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "media/"
+# Media filles (Avatar, images, files)
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
