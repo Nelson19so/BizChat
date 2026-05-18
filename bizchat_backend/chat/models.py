@@ -20,3 +20,14 @@ class Message(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class StatusPost(models.Model):
+    user = models.ManyToManyField('user.CustomUser',)
+    caption = models.CharField(max_length=100, blank=True, null=True)
+    image = models.ImageField(upload_to='status_images/', blank=True, null=True)
+    video = models.FileField(upload_to='status_videos/', blank=True, null=True)
+    posted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user
