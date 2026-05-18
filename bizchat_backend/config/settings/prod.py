@@ -1,7 +1,7 @@
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # Allowed hosts for production
 ALLOWED_HOSTS = []
@@ -19,6 +19,15 @@ DATABASES = {
     }
 }
 
+# Redis layer for Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Cors settings to allow requests from specified origins
 CORS_ALLOWED_ORIGINS = [

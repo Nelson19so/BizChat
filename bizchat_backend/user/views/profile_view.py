@@ -76,3 +76,20 @@ class SearchUserByPhoneNumberApiView(APIView):
         serializer = UserSerializer(user_profile.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PublicProfileApiView(APIView):
+    """Public profile view for user"""
+
+    def get(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+
+        if not user:
+            return Response(
+                {"details": "This user is not registered"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = UserSerializer(user_profile.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)    
