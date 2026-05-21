@@ -74,7 +74,6 @@ class AuthController extends StateNotifier<AuthState> {
       state = state.copyWith(
         isLoading: false,
         isLoggedIn: true,
-        // token: token,
       );
     } on DioException catch (e) {
       state = state.copyWith(

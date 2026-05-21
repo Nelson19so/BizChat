@@ -10,19 +10,33 @@ from datetime import date
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
+    statuses = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = (
             'id', 
             'email', 
-            'first_name', 
+            'first_name',
             'last_name', 
             'is_active', 
             'is_staff',
             'profile',
+            'statuses',
         )
         read_only_fields = ('id',)
+
+    def get_statuses(self, obj):
+        status = obj.statuses.all()
+
+        if status.exists():
+            return {
+                "has_status": True,
+                "count": obj.statuses.count(),
+                "latest_status_time": obj.statuses.latest("posted_at").posted_at
+            }
+
+        return {"has_status": False}
 
     def get_profile(self, obj):
         profile = getattr(obj, 'profile', None)
@@ -40,7 +54,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number": profile.phone_number,
             "created_at": profile.created_at,
         }
-        
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Handles user registration with email-based authentication."""
@@ -146,6 +160,7 @@ class UserLoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
