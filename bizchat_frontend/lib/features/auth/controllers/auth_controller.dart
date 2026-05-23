@@ -1,5 +1,4 @@
 import 'package:bizchat_frontend/core/network/api_routes.dart';
-import 'package:bizchat_frontend/core/network/dio_client.dart';
 import 'package:bizchat_frontend/core/storage/token_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,11 +64,29 @@ class AuthController extends StateNotifier<AuthState> {
         },
       );
 
-      // Replace with real backend response
-      final access = response.data["token"]['access'];
-      final refresh = response.data["token"]['refresh'];
+      print('response data: ${response.data}');
 
-      await storage.saveToken(refresh, access);
+      if (response.data != null && response.data["success"] == true) {
+        final tokens = response.data["tokens"];
+
+        if (tokens != null) {
+          final access = tokens['access'] ?? '';
+          final refresh = tokens['refresh'] ?? '';
+
+          // Save tokens securely
+          await storage.saveToken(refresh, access);
+
+          state = state.copyWith(
+            isLoading: false,
+            isLoggedIn: true,
+          );
+        } else {
+          state = state.copyWith(
+            isLoading: false,
+            error: "Authentication tokens missing from server response.",
+          );
+        }
+      }
 
       state = state.copyWith(
         isLoading: false,
@@ -141,9 +158,11 @@ class AuthController extends StateNotifier<AuthState> {
 }
 
 /// PROVIDER
+final dioProvider = Provider<Dio>((ref) => Dio());
+
 final authControllerProvider =
 StateNotifierProvider<AuthController, AuthState>((ref) {
-  final dio = ref.read(dioProvider);
+  final dio = ref.watch(dioProvider);
   final authController = AuthController(ref, dio);
 
   return authController;
