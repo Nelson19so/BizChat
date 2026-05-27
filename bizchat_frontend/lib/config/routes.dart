@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class AppRoute {
   // Chat routes
-  static const String homeScreen = '/';
+  static const String homeScreen = '/chat';
 
   // Authentication & user routes
   static const String loginScreen = '/login';

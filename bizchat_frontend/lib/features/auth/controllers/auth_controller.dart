@@ -1,5 +1,8 @@
+import 'package:bizchat_frontend/core/helper/error_helper.dart';
 import 'package:bizchat_frontend/core/network/api_routes.dart';
 import 'package:bizchat_frontend/core/storage/token_storage.dart';
+import 'package:bizchat_frontend/features/auth/models/login_response.dart';
+import 'package:bizchat_frontend/features/auth/models/user.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -10,20 +13,20 @@ class AuthState {
   final bool isLoggedIn;
   final String? token;
   final String? error;
+  final User? user;
 
   AuthState({
     required this.isLoading,
     required this.isLoggedIn,
     this.token,
     this.error,
+    this.user,
   });
 
   factory AuthState.initial() {
     return AuthState(
       isLoading: false,
       isLoggedIn: false,
-      token: null,
-      error: null,
     );
   }
 
@@ -32,12 +35,17 @@ class AuthState {
     bool? isLoggedIn,
     String? token,
     String? error,
+    User? user,
+    bool clearError = false,
+    bool clearUser = false,
+    bool clearToken = false,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
-      token: token ?? this.token,
-      error: error,
+      token: clearToken ? null : token ?? this.token,
+      error: clearError ? null : error ?? this.error,
+      user: clearUser ? null : user ?? this.user,
     );
   }
 }
@@ -51,7 +59,7 @@ class AuthController extends StateNotifier<AuthState> {
 
   /// LOGIN
   Future<void> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, user: null);
 
     try {
       final storage = ref.read(tokenStorageProvider);
@@ -64,10 +72,11 @@ class AuthController extends StateNotifier<AuthState> {
         },
       );
 
-      print('response data: ${response.data}');
-
       if (response.data != null && response.data["success"] == true) {
         final tokens = response.data["tokens"];
+
+        final data = Map<String, dynamic>.from(response.data);
+        final loginResponse = LoginResponse.fromJson(data);
 
         if (tokens != null) {
           final access = tokens['access'] ?? '';
@@ -79,6 +88,7 @@ class AuthController extends StateNotifier<AuthState> {
           state = state.copyWith(
             isLoading: false,
             isLoggedIn: true,
+            user: loginResponse.user
           );
         } else {
           state = state.copyWith(
@@ -87,15 +97,10 @@ class AuthController extends StateNotifier<AuthState> {
           );
         }
       }
-
-      state = state.copyWith(
-        isLoading: false,
-        isLoggedIn: true,
-      );
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data.toString() ?? e.message,
+        error: ErrorHelper.getErrorMessage(e),
       );
     } catch (e) {
       state = state.copyWith(
@@ -154,6 +159,10 @@ class AuthController extends StateNotifier<AuthState> {
     await storage.clearToken();
 
     state = AuthState.initial();
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
   }
 }
 

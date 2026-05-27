@@ -1,6 +1,8 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/features/auth/screens/widget/text_field_widget.dart';
+import 'package:bizchat_frontend/features/chat/screens/home.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,30 +19,68 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
 
   late final ProviderSubscription<AuthState> _subscription;
+  bool _obsecurePassword = true;
+  bool _canLogIn = false;
+
+  String? emailAddressError;
+  String? passwordError;
+
+  void _validateLogin() {
+    final email = _emailAddressController.text.trim();
+    final password = _passwordController.text.trim();
+
+    String? emailError;
+    String? passError;
+
+    if (email.isEmpty) {
+      emailError = 'Email address required';
+    }
+
+    if (password.isEmpty) {
+      passError = 'Password field is required';
+    }
+
+    setState(() {
+      emailAddressError = emailError;
+      passwordError = passError;
+      _canLogIn = emailError == null && passError == null;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _emailAddressController.addListener(_validateLogin);
+    _passwordController.addListener(_validateLogin);
+
 
     _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
       if (!mounted) return;
+
+      if (previous?.isLoggedIn == false && next.isLoggedIn == true) {        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
+    _emailAddressController.removeListener(_validateLogin);
+    _passwordController.removeListener(_validateLogin);
+
     _emailAddressController.dispose();
     _passwordController.dispose();
     _subscription.close();
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
 
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         // backgroundColor: AppColors.secondaryWhite,
         appBar: AppBar(
           title: const Text('Log In'),
@@ -76,76 +116,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 Column(
                   children: [
-                    textFieldWidget(
-                      hintLabelText: 'Email or Phone Number',
-                      textFieldController: _emailAddressController
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        textFieldWidget(
+                          hintLabelText: 'Email or Phone Number',
+                          textFieldController: _emailAddressController
+                        ),
+
+                        buildErrorMessage(emailAddressError),
+                      ],
                     ),
 
                     const SizedBox(height: 16),
 
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryGray3,
-                        border: Border.all(
-                          color: AppColors.secondaryGray4,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _passwordController,
-                              decoration: InputDecoration(
-                                label: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                    vertical: 4.0,
-                                  ),
-                                  color: AppColors.secondaryGray3,
-                                  child: Text(
-                                    'Password',
-                                    style: TextStyle(
-                                      color: AppColors.secondaryGray5,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryGray3,
+                            border: Border.all(
+                              color: AppColors.secondaryGray4,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _passwordController,
+                                  obscureText: _obsecurePassword,
+                                  decoration: InputDecoration(
+                                    label: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 4.0,
+                                      ),
+                                      color: AppColors.secondaryGray3,
+                                      child: Text(
+                                        'Password',
+                                        style: TextStyle(
+                                          color: AppColors.secondaryGray5,
+                                        ),
+                                      ),
                                     ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.secondaryGray3,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.secondaryGray3,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    fillColor: Colors.white,
+                                    filled: false,
                                   ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.secondaryGray3,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppColors.secondaryGray3,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                fillColor: Colors.white,
-                                filled: false,
                               ),
-                            ),
-                          ),
 
-                          TextButton(
-                            onPressed: () {
-                              if (kDebugMode) {
-                                print('Hello show pwd');
-                              }
-                            },
-                            child: Text(
-                              'Show',
-                              style: TextStyle(
-                                fontSize: 19,
-                                color: AppColors.primaryColor,
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _obsecurePassword = !_obsecurePassword;
+                                  });
+                                },
+                                child: Text(
+                                  _obsecurePassword ? 'Show' : 'hide',
+                                  style: TextStyle(
+                                    fontSize: 19,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+
+                        buildErrorMessage(passwordError),
+                      ],
                     ),
+
+                    const SizedBox(height: 20,),
+
+                    if (authState.error != null && authState.isLoading == false)
+                      Text(
+                        authState.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                   ],
                 ),
 
@@ -162,10 +225,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           minimumSize: const Size(200, 50),
                         ),
                         onPressed: authState.isLoading ? null : () async {
-                          await ref.read(authControllerProvider.notifier).login(
+                          if (_canLogIn) {
+                            await ref
+                              .read(authControllerProvider.notifier)
+                              .login(
                               _emailAddressController.text,
                               _passwordController.text
-                          );
+                            );
+                          }
                         },
                         child: authState.isLoading ? SizedBox(
                           width: 24,
@@ -209,7 +276,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }

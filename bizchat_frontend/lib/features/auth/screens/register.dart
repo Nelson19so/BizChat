@@ -1,4 +1,5 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
 import 'package:bizchat_frontend/services/authService.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -175,7 +176,7 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
 
-                            _buildErrorMessage(firstNameError),
+                            buildErrorMessage(firstNameError),
                           ],
                         ),
                       ),
@@ -233,7 +234,7 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
 
-                            _buildErrorMessage(lastNameError),
+                            buildErrorMessage(lastNameError),
                           ],
                         ),
                       ),
@@ -290,7 +291,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
 
-                      _buildErrorMessage(emailError),
+                      buildErrorMessage(emailError),
                     ],
                   ),
 
@@ -378,7 +379,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
 
-                      _buildErrorMessage(passwordError),
+                      buildErrorMessage(passwordError),
                     ],
                   ),
 
@@ -476,21 +477,6 @@ class _RegisterState extends State<Register> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorMessage(String? error) {
-    if (error == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 5, left: 8),
-      child: Text(
-        '*$error',
-        style: TextStyle(
-          color: Colors.red, // Your custom color
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
