@@ -50,14 +50,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailAddressController.addListener(_validateLogin);
-    _passwordController.addListener(_validateLogin);
+    // _emailAddressController.addListener(_validateLogin);
+    // _passwordController.addListener(_validateLogin);
 
-    _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
+    _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) async {
       if (!mounted) return;
 
       if (previous?.isLoggedIn == false && next.isLoggedIn == true) {        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          await Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()))
         );
       }
     });
@@ -65,8 +65,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailAddressController.removeListener(_validateLogin);
-    _passwordController.removeListener(_validateLogin);
+    // _emailAddressController.removeListener(_validateLogin);
+    // _passwordController.removeListener(_validateLogin);
 
     _emailAddressController.dispose();
     _passwordController.dispose();

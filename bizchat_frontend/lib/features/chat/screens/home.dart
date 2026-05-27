@@ -1,4 +1,5 @@
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
+import 'package:bizchat_frontend/features/auth/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,7 +25,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () async {
               // Easily trigger your logout method
               await ref.read(authControllerProvider.notifier).logout();
-            },
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+              );            },
           ),
         ],
       ),

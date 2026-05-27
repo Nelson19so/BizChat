@@ -1,7 +1,10 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 
-Widget textFieldWidget({required String hintLabelText, required TextEditingController textFieldController}) {
+Widget textFieldWidget({
+  required String hintLabelText,
+  required TextEditingController textFieldController
+}) {
   return TextField(
     controller: textFieldController,
     decoration: InputDecoration(

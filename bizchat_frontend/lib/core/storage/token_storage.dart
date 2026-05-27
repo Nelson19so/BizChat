@@ -8,18 +8,21 @@ class TokenStorage {
   static const _access = "access";
 
   Future<void> saveToken(String access, String refresh) async {
-    await _storage.write(key: _refresh, value: refresh);
     await _storage.write(key: _access, value: access);
+    await _storage.write(key: _refresh, value: refresh);
   }
 
-  // Get access token for authenticated requests
-  Future<String?> getAccessToken() async {
-    return await _storage.read(key: 'access');
+  Future<String?> getAccessToken() {
+    return _storage.read(key: _access);
+  }
+
+  Future<String?> getRefreshToken() {
+    return _storage.read(key: _refresh);
   }
 
   Future<void> clearToken() async {
-    await _storage.delete(key: 'access');
-    await _storage.delete(key: 'refresh');
+    await _storage.delete(key: _access);
+    await _storage.delete(key: _refresh);
   }
 }
 

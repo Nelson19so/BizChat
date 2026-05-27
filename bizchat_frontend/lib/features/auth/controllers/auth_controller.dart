@@ -83,7 +83,7 @@ class AuthController extends StateNotifier<AuthState> {
           final refresh = tokens['refresh'] ?? '';
 
           // Save tokens securely
-          await storage.saveToken(refresh, access);
+          await storage.saveToken(access, refresh);
 
           state = state.copyWith(
             isLoading: false,
@@ -166,14 +166,21 @@ class AuthController extends StateNotifier<AuthState> {
 
   /// AUTO LOGIN (on app start)
   Future<void> checkAuth() async {
-    final storage = ref.read(tokenStorageProvider);
-    final token = await storage.getAccessToken();
+    state = state.copyWith(isLoading: true);
 
-    if (token != null) {
+    final storage = ref.read(tokenStorageProvider);
+
+    final access = await storage.getAccessToken();
+    final refresh = await storage.getRefreshToken();
+
+    if (access != null && refresh != null) {
       state = state.copyWith(
+        isLoading: false,
         isLoggedIn: true,
-        token: token,
+        token: access,
       );
+    } else {
+      state = AuthState.initial();
     }
   }
 
@@ -197,7 +204,9 @@ final dioProvider = Provider<Dio>((ref) => Dio());
 final authControllerProvider =
 StateNotifierProvider<AuthController, AuthState>((ref) {
   final dio = ref.watch(dioProvider);
-  final authController = AuthController(ref, dio);
+  final controller = AuthController(ref, dio);
 
-  return authController;
+  controller.checkAuth();
+
+  return controller;
 });
