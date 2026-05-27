@@ -120,7 +120,9 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      await dio.post(
+      final storage = ref.read(tokenStorageProvider);
+
+      final response = await dio.post(
         ApiRoutes.register,
         data: {
           'first_name': firstName,
@@ -130,7 +132,30 @@ class AuthController extends StateNotifier<AuthState> {
         },
       );
 
-      state = state.copyWith(isLoading: false);
+      if (response.data != null && response.data["success"] == true) {
+        final tokens = response.data["tokens"];
+
+        final data = Map<String, dynamic>.from(response.data);
+        final loginResponse = LoginResponse.fromJson(data);
+
+        if (tokens != null) {
+          final access = tokens['access'] ?? '';
+          final refresh = tokens['refresh'] ?? '';
+
+          // Save tokens securely
+          await storage.saveToken(refresh, access);
+
+          state = state.copyWith(
+              isLoading: false,
+              user: loginResponse.user
+          );
+        } else {
+          state = state.copyWith(
+            isLoading: false,
+            error: "Authentication tokens missing from server response.",
+          );
+        }
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

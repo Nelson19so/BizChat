@@ -53,7 +53,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _emailAddressController.addListener(_validateLogin);
     _passwordController.addListener(_validateLogin);
 
-
     _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
       if (!mounted) return;
 
@@ -225,6 +224,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           minimumSize: const Size(200, 50),
                         ),
                         onPressed: authState.isLoading ? null : () async {
+                          _validateLogin();
+
                           if (_canLogIn) {
                             await ref
                               .read(authControllerProvider.notifier)
