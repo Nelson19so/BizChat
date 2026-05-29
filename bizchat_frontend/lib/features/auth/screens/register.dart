@@ -1,17 +1,19 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
+import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/services/authService.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Register extends StatefulWidget {
+class Register extends ConsumerStatefulWidget {
   const Register({super.key});
 
   @override
-  State<Register> createState() => _RegisterState();
+  ConsumerState<Register> createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register> {
+class _RegisterState extends ConsumerState<Register> {
   final authservice = Authservice();
 
   final firstNameController = TextEditingController();
@@ -104,6 +106,7 @@ class _RegisterState extends State<Register> {
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, '/login');
+              ref.read(authControllerProvider.notifier).clearError();
             },
             child: Text(
               'login',

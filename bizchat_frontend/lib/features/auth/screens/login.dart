@@ -33,7 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     String? passError;
 
     if (email.isEmpty) {
-      emailError = 'Email address required';
+      emailError = 'Email address is required';
     }
 
     if (password.isEmpty) {
@@ -50,8 +50,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // _emailAddressController.addListener(_validateLogin);
-    // _passwordController.addListener(_validateLogin);
+    _emailAddressController.addListener(_validateLogin);
+    _passwordController.addListener(_validateLogin);
 
     _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) async {
       if (!mounted) return;
@@ -65,8 +65,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    // _emailAddressController.removeListener(_validateLogin);
-    // _passwordController.removeListener(_validateLogin);
+    _emailAddressController.removeListener(_validateLogin);
+    _passwordController.removeListener(_validateLogin);
 
     _emailAddressController.dispose();
     _passwordController.dispose();
@@ -93,6 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
+                ref.read(authControllerProvider.notifier).clearError();
               },
               child: Text(
                 'Sign Up',
@@ -120,7 +121,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         textFieldWidget(
                           hintLabelText: 'Email or Phone Number',
-                          textFieldController: _emailAddressController
+                          textFieldController: _emailAddressController,
+                          hasError: emailAddressError != null ? false : true
                         ),
 
                         buildErrorMessage(emailAddressError),
@@ -136,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.secondaryGray3,
                             border: Border.all(
-                              color: AppColors.secondaryGray4,
+                              color:  passwordError == null ? AppColors.secondaryGray4 : Colors.red,
                               width: 1.0,
                             ),
                             borderRadius: BorderRadius.circular(8.0),
@@ -158,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       child: Text(
                                         'Password',
                                         style: TextStyle(
-                                          color: AppColors.secondaryGray5,
+                                          color: passwordError != null ? Colors.red : AppColors.secondaryGray5,
                                         ),
                                       ),
                                     ),

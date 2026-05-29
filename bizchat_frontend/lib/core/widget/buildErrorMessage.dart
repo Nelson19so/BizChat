@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 Widget buildErrorMessage(String? error) {
   if (error == null) return const SizedBox.shrink();
   return Padding(
-    padding: const EdgeInsets.only(top: 5, left: 8),
+    padding: const EdgeInsets.only(top: 5, left: 8, bottom: 1),
     child: Text(
       '*$error',
       style: TextStyle(

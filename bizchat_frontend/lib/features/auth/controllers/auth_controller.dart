@@ -43,9 +43,9 @@ class AuthState {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
-      token: clearToken ? null : token ?? this.token,
-      error: clearError ? null : error ?? this.error,
-      user: clearUser ? null : user ?? this.user,
+      token: token,
+      error: error,
+      user: user,
     );
   }
 }
@@ -105,7 +105,7 @@ class AuthController extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: ErrorHelper.getErrorMessage(e),
       );
     }
   }
