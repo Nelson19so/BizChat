@@ -1,16 +1,19 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
+import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/services/authService.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Register extends StatefulWidget {
+class Register extends ConsumerStatefulWidget {
   const Register({super.key});
 
   @override
-  _RegisterState createState() => _RegisterState();
+  ConsumerState<Register> createState() => _RegisterState();
 }
 
-class _RegisterState extends State<Register> {
+class _RegisterState extends ConsumerState<Register> {
   final authservice = Authservice();
 
   final firstNameController = TextEditingController();
@@ -103,6 +106,7 @@ class _RegisterState extends State<Register> {
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, '/login');
+              ref.read(authControllerProvider.notifier).clearError();
             },
             child: Text(
               'login',
@@ -175,7 +179,7 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
 
-                            _buildErrorMessage(firstNameError),
+                            buildErrorMessage(firstNameError),
                           ],
                         ),
                       ),
@@ -233,7 +237,7 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
 
-                            _buildErrorMessage(lastNameError),
+                            buildErrorMessage(lastNameError),
                           ],
                         ),
                       ),
@@ -290,7 +294,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
 
-                      _buildErrorMessage(emailError),
+                      buildErrorMessage(emailError),
                     ],
                   ),
 
@@ -378,7 +382,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
 
-                      _buildErrorMessage(passwordError),
+                      buildErrorMessage(passwordError),
                     ],
                   ),
 
@@ -476,21 +480,6 @@ class _RegisterState extends State<Register> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorMessage(String? error) {
-    if (error == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 5, left: 8),
-      child: Text(
-        '*$error',
-        style: TextStyle(
-          color: Colors.red, // Your custom color
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );

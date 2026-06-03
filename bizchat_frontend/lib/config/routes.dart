@@ -1,3 +1,4 @@
+import 'package:bizchat_frontend/features/auth/screens/guards/session_gate.dart';
 import 'package:bizchat_frontend/features/auth/screens/login.dart';
 import 'package:bizchat_frontend/features/auth/screens/register.dart';
 import 'package:bizchat_frontend/features/chat/screens/home.dart';
@@ -5,16 +6,25 @@ import 'package:flutter/material.dart';
 
 class AppRoute {
   // Chat routes
-  static const String homeScreen = '/';
+  static const String homeScreen = '/chat';
 
   // Authentication & user routes
   static const String loginScreen = '/login';
   static const String registerScreen = '/register';
 
   static final Map<String, WidgetBuilder> routes = {
-    homeScreen: (_) => HomeScreen(),
-    loginScreen: (_) => LoginScreen(),
-    registerScreen: (_) => Register(),
+    // Home screen
+    homeScreen: (_) => SessionGate(
+      mode: AccessMode.authOnly, child: HomeScreen()
+    ),
+
+    // Auth screens
+    loginScreen: (_) => SessionGate(
+      mode: AccessMode.guestOnly, child: LoginScreen()
+    ),
+    registerScreen: (_) => SessionGate(
+      mode: AccessMode.guestOnly, child: Register()
+    ),
   };
 
   static Route<dynamic> generateRoute(RouteSettings settings) {

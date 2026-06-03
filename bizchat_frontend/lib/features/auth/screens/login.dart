@@ -1,18 +1,85 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
+import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
+import 'package:bizchat_frontend/features/auth/screens/widget/text_field_widget.dart';
+import 'package:bizchat_frontend/features/chat/screens/home.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  ConsumerState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailAddressController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  late final ProviderSubscription<AuthState> _subscription;
+  bool _obsecurePassword = true;
+  bool _canLogIn = false;
+
+  String? emailAddressError;
+  String? passwordError;
+
+  void _validateLogin() {
+    final email = _emailAddressController.text.trim();
+    final password = _passwordController.text.trim();
+
+    String? emailError;
+    String? passError;
+
+    if (email.isEmpty) {
+      emailError = 'Email address is required';
+    }
+
+    if (password.isEmpty) {
+      passError = 'Password field is required';
+    }
+
+    setState(() {
+      emailAddressError = emailError;
+      passwordError = passError;
+      _canLogIn = emailError == null && passError == null;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _emailAddressController.addListener(_validateLogin);
+    _passwordController.addListener(_validateLogin);
+
+    _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) async {
+      if (!mounted) return;
+
+      if (previous?.isLoggedIn == false && next.isLoggedIn == true) {        Navigator.of(context).pushReplacement(
+          await Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()))
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailAddressController.removeListener(_validateLogin);
+    _passwordController.removeListener(_validateLogin);
+
+    _emailAddressController.dispose();
+    _passwordController.dispose();
+    _subscription.close();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    final authState = ref.watch(authControllerProvider);
+
+    return Scaffold(
         // backgroundColor: AppColors.secondaryWhite,
         appBar: AppBar(
           title: const Text('Log In'),
@@ -26,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
+                ref.read(authControllerProvider.notifier).clearError();
               },
               child: Text(
                 'Sign Up',
@@ -46,100 +114,103 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  child: Column(
-                    children: [
-                      Container(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Email or Phone Number',
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.secondaryGray4,
-                              ),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.secondaryGray4,
-                              ),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            fillColor: AppColors.secondaryGray3,
-                            filled: true,
-                            labelStyle: TextStyle(
-                              color: AppColors.secondaryGray5,
-                            ),
-                          ),
+                Column(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        textFieldWidget(
+                          hintLabelText: 'Email or Phone Number',
+                          textFieldController: _emailAddressController,
+                          hasError: emailAddressError != null ? false : true
                         ),
-                      ),
 
-                      const SizedBox(height: 16),
+                        buildErrorMessage(emailAddressError),
+                      ],
+                    ),
 
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.secondaryGray3,
-                          border: Border.all(
-                            color: AppColors.secondaryGray4,
-                            width: 1.0,
+                    const SizedBox(height: 16),
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryGray3,
+                            border: Border.all(
+                              color:  passwordError == null ? AppColors.secondaryGray4 : Colors.red,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(8.0),
                           ),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  label: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                      vertical: 4.0,
-                                    ),
-                                    color: AppColors.secondaryGray3,
-                                    child: Text(
-                                      'Password',
-                                      style: TextStyle(
-                                        color: AppColors.secondaryGray5,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _passwordController,
+                                  obscureText: _obsecurePassword,
+                                  decoration: InputDecoration(
+                                    label: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 4.0,
+                                      ),
+                                      color: AppColors.secondaryGray3,
+                                      child: Text(
+                                        'Password',
+                                        style: TextStyle(
+                                          color: passwordError != null ? Colors.red : AppColors.secondaryGray5,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: AppColors.secondaryGray3,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.secondaryGray3,
+                                      ),
                                     ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: AppColors.secondaryGray3,
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: AppColors.secondaryGray3,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8.0),
                                     ),
-                                    borderRadius: BorderRadius.circular(8.0),
+                                    fillColor: Colors.white,
+                                    filled: false,
                                   ),
-                                  fillColor: Colors.white,
-                                  filled: false,
                                 ),
                               ),
-                            ),
 
-                            Container(
-                              child: TextButton(
+                              TextButton(
                                 onPressed: () {
-                                  print('Hello show pwd');
+                                  setState(() {
+                                    _obsecurePassword = !_obsecurePassword;
+                                  });
                                 },
                                 child: Text(
-                                  'Show',
+                                  _obsecurePassword ? 'Show' : 'hide',
                                   style: TextStyle(
                                     fontSize: 19,
                                     color: AppColors.primaryColor,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+
+                        buildErrorMessage(passwordError),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20,),
+
+                    if (authState.error != null && authState.isLoading == false)
+                      Text(
+                        authState.error!,
+                        style: const TextStyle(color: Colors.red),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
 
                 Column(
@@ -154,8 +225,26 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           minimumSize: const Size(200, 50),
                         ),
-                        onPressed: () => print('hello Login button pressed'),
-                        child: Text(
+                        onPressed: authState.isLoading ? null : () async {
+                          _validateLogin();
+
+                          if (_canLogIn) {
+                            await ref
+                              .read(authControllerProvider.notifier)
+                              .login(
+                              _emailAddressController.text,
+                              _passwordController.text
+                            );
+                          }
+                        },
+                        child: authState.isLoading ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ) : Text(
                           'Log In',
                           style: TextStyle(
                             color: AppColors.secondaryWhite,
@@ -171,7 +260,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       child: TextButton(
                         onPressed: () {
-                          print('hello Forgot password pressed');
+                          if (kDebugMode) {
+                            print('hello Forgot password pressed');
+                          }
                         },
                         child: Text(
                           'Forgot your password?',
@@ -188,7 +279,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }
