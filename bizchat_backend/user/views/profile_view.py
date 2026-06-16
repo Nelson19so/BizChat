@@ -82,14 +82,14 @@ class PublicProfileApiView(APIView):
     """Public profile view for user"""
 
     def get(self, request, user_id):
-        user = User.objects.filter(id=user_id).first()
+        pub_user = User.objects.filter(id=user_id).first()
 
-        if not user:
+        if not pub_user:
             return Response(
                 {"details": "This user is not registered"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = UserSerializer(user_profile.user)
+        serializer = UserSerializer(pub_user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)    

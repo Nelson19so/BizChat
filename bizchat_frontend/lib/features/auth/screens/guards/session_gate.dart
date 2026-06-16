@@ -1,3 +1,4 @@
+import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/features/chat/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,9 +25,7 @@ class SessionGate extends ConsumerWidget {
       future: storage.getAccessToken(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const ScreenLoader();
         }
 
         final isLoggedIn = snapshot.data != null;

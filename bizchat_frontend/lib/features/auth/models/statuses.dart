@@ -8,4 +8,10 @@ class Statuses {
       hasStatus: json['has_status'] as bool,
     );
   }
+
+  factory Statuses.empty() {
+    return Statuses(
+      hasStatus: false,
+    );
+  }
 }

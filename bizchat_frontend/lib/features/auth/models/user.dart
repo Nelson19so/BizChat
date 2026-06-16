@@ -24,14 +24,18 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as int,
-      email: json['email'] as String,
-      firstName: json['first_name'] as String,
-      lastName: json['last_name'] as String,
-      isActive: json['is_active'] as bool,
-      isStaff: json['is_staff'] as bool,
-      profile: Profile.fromJson(json['profile'] as Map<String, dynamic>),
-      statuses: Statuses.fromJson(json['statuses'] as Map<String, dynamic>),
+      id: json['id'] as int? ?? 0,
+      email: json['email'] as String? ?? '',
+      firstName: json['first_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
+      isActive: json['is_active'] as bool? ?? false,
+      isStaff: json['is_staff'] as bool? ?? false,
+      profile: json['profile'] != null
+          ? Profile.fromJson(json['profile'] as Map<String, dynamic>)
+          : Profile.empty(),
+      statuses: json['statuses'] != null
+          ? Statuses.fromJson(json['statuses'] as Map<String, dynamic>)
+          : Statuses.empty(),
     );
   }
 }

@@ -74,11 +74,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         }
     )
     password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
+    # confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'first_name', 'last_name', 'password', 'confirm_password')
+        fields = ('email', 'first_name', 'last_name', 'password', 
+                #   'confirm_password'
+                  )
 
     def validate_email(self, value):
         value = value.lower().strip()
@@ -95,10 +97,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         password = attrs.get("password")
-        confirm_password = attrs.get("confirm_password")
+        # confirm_password = attrs.get("confirm_password")
 
-        if password != confirm_password:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        # if password != confirm_password:
+        #     raise serializers.ValidationError({"password": "Password fields didn't match."})
         
         try:
             validate_password(password)
@@ -121,7 +123,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        validated_data.pop('confirm_password', None)
+        # validated_data.pop('confirm_password', None)
 
         try:
             with transaction.atomic():

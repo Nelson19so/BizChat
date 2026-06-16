@@ -9,9 +9,10 @@ class ErrorHelper {
 
         // Backend returned JSON
         if (data is Map<String, dynamic>) {
-          return data['details']?.toString() ??
-              data['message']?.toString() ??
+          return data['message']?.toString() ??
+              data['details']?.toString() ??
               data['error']?.toString() ??
+              data['email']?.toString() ??
               "Something went wrong";
         }
 

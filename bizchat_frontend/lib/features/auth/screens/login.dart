@@ -1,8 +1,10 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
+import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/features/auth/screens/widget/text_field_widget.dart';
 import 'package:bizchat_frontend/features/chat/screens/home.dart';
+import 'package:bizchat_frontend/features/provider/provders.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,43 +23,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   late final ProviderSubscription<AuthState> _subscription;
   bool _obsecurePassword = true;
   bool _canLogIn = false;
+  bool _handledLogin = false;
 
   String? emailAddressError;
   String? passwordError;
 
-  void _validateLogin() {
+  void _validateEmail() {
     final email = _emailAddressController.text.trim();
-    final password = _passwordController.text.trim();
+    ref.read(authControllerProvider.notifier).clearError();
 
-    String? emailError;
-    String? passError;
-
-    if (email.isEmpty) {
-      emailError = 'Email address is required';
-    }
-
-    if (password.isEmpty) {
-      passError = 'Password field is required';
-    }
+    // Simple email format regular expression
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     setState(() {
-      emailAddressError = emailError;
-      passwordError = passError;
-      _canLogIn = emailError == null && passError == null;
+      if (email.isEmpty) {
+        emailAddressError = 'Email address is required';
+      } else if (!emailRegex.hasMatch(email)) {
+        emailAddressError = 'Please enter a valid email address format';
+      } else if (email.length <= 5) {
+        emailAddressError = 'Email must be longer than 5 characters';
+      } else {
+        emailAddressError = null;
+      }
+    });
+  }
+
+  void _validatePassword() {
+    final password = _passwordController.text.trim();
+    ref.read(authControllerProvider.notifier).clearError();
+
+    setState(() {
+      if (password.isEmpty) {
+        passwordError = 'Password field is required';
+      } else if (password.length <= 8) {
+        passwordError = 'Please enter a valid password length';
+      } else {
+        passwordError = null;
+      }
+    });
+  }
+
+  void _validateBeforeLogin() {
+    _validateEmail();
+    _validatePassword();
+
+    setState(() {
+      _canLogIn =
+          emailAddressError == null &&
+              passwordError == null;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _emailAddressController.addListener(_validateLogin);
-    _passwordController.addListener(_validateLogin);
+    _emailAddressController.addListener(_validateEmail);
+    _passwordController.addListener(_validatePassword);
+
+    Future.microtask(() {
+      ref.read(authControllerProvider.notifier).clearError();
+    });
 
     _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) async {
       if (!mounted) return;
 
-      if (previous?.isLoggedIn == false && next.isLoggedIn == true) {        Navigator.of(context).pushReplacement(
-          await Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()))
+      if (!_handledLogin &&
+          previous?.isLoggedIn != true &&
+          next.isLoggedIn == true) {
+
+        _handledLogin = true;
+
+        scaffholdmessage(
+          context: context,
+          message: '${next.success}',
+          type: ScaffHoldMessageType.successful
+        );
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
         );
       }
     });
@@ -65,8 +110,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailAddressController.removeListener(_validateLogin);
-    _passwordController.removeListener(_validateLogin);
+    _emailAddressController.removeListener(_validateEmail);
+    _passwordController.removeListener(_validatePassword);
 
     _emailAddressController.dispose();
     _passwordController.dispose();
@@ -93,7 +138,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
-                ref.read(authControllerProvider.notifier).clearError();
               },
               child: Text(
                 'Sign Up',
@@ -122,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         textFieldWidget(
                           hintLabelText: 'Email or Phone Number',
                           textFieldController: _emailAddressController,
-                          hasError: emailAddressError != null ? false : true
+                          hasError: emailAddressError == null ? false : true
                         ),
 
                         buildErrorMessage(emailAddressError),
@@ -226,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           minimumSize: const Size(200, 50),
                         ),
                         onPressed: authState.isLoading ? null : () async {
-                          _validateLogin();
+                          _validateBeforeLogin();
 
                           if (_canLogIn) {
                             await ref

@@ -1,9 +1,6 @@
-import 'package:bizchat_frontend/core/helper/error_helper.dart';
-import 'package:bizchat_frontend/core/network/api_routes.dart';
 import 'package:bizchat_frontend/core/storage/token_storage.dart';
-import 'package:bizchat_frontend/features/auth/models/login_response.dart';
+import 'package:bizchat_frontend/features/auth/data/user_api_service.dart';
 import 'package:bizchat_frontend/features/auth/models/user.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -14,6 +11,7 @@ class AuthState {
   final String? token;
   final String? error;
   final User? user;
+  final String? success;
 
   AuthState({
     required this.isLoading,
@@ -21,12 +19,15 @@ class AuthState {
     this.token,
     this.error,
     this.user,
+    this.success
   });
 
   factory AuthState.initial() {
     return AuthState(
       isLoading: false,
       isLoggedIn: false,
+      error: null,
+      success: null,
     );
   }
 
@@ -36,76 +37,58 @@ class AuthState {
     String? token,
     String? error,
     User? user,
-    bool clearError = false,
-    bool clearUser = false,
-    bool clearToken = false,
+    String? success,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
-      token: token,
+      token: token ?? this.token,
+      user: user ?? this.user,
       error: error,
-      user: user,
+      success: success,
     );
   }
 }
 
 /// CONTROLLER
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this.ref, this.dio) : super(AuthState.initial());
+  AuthController(this.ref, this.api) : super(AuthState.initial());
 
   final Ref ref;
-  final Dio dio;
+  final UserApiService api;
 
   /// LOGIN
   Future<void> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null, user: null);
-
     try {
       final storage = ref.read(tokenStorageProvider);
-
-      final response = await dio.post(
-        ApiRoutes.login,
-        data: {
-          "email": email,
-          "password": password,
-        },
-      );
-
-      if (response.data != null && response.data["success"] == true) {
-        final tokens = response.data["tokens"];
-
-        final data = Map<String, dynamic>.from(response.data);
-        final loginResponse = LoginResponse.fromJson(data);
-
-        if (tokens != null) {
-          final access = tokens['access'] ?? '';
-          final refresh = tokens['refresh'] ?? '';
-
-          // Save tokens securely
-          await storage.saveToken(access, refresh);
-
-          state = state.copyWith(
-            isLoading: false,
-            isLoggedIn: true,
-            user: loginResponse.user
-          );
-        } else {
-          state = state.copyWith(
-            isLoading: false,
-            error: "Authentication tokens missing from server response.",
-          );
-        }
-      }
-    } on DioException catch (e) {
       state = state.copyWith(
-        isLoading: false,
-        error: ErrorHelper.getErrorMessage(e),
+        isLoading: true,
+        error: null,
+        user: null,
+        success: null
       );
+
+      final loginResponse = await api.loginUser(email: email, password: password);
+
+      if (loginResponse.tokens != null && loginResponse.success == true) {
+        final access = loginResponse.tokens!.access;
+        final refresh = loginResponse.tokens!.refresh;
+
+        await storage.saveToken(access, refresh);
+
+        state = state.copyWith(
+          isLoading: false,
+          isLoggedIn: true,
+          token: access,
+          success: loginResponse.details,
+          user: loginResponse.user,
+        );
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: ErrorHelper.getErrorMessage(e),
+        error: e.toString(),
+        success: null
       );
     }
   }
@@ -117,49 +100,41 @@ class AuthController extends StateNotifier<AuthState> {
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
     try {
       final storage = ref.read(tokenStorageProvider);
-
-      final response = await dio.post(
-        ApiRoutes.register,
-        data: {
-          'first_name': firstName,
-          'last_name': lastName,
-          'email': email,
-          'password': password,
-        },
+      state = state.copyWith(
+          isLoading: true,
+          error: null,
+          user: null,
+          success: null
       );
 
-      if (response.data != null && response.data["success"] == true) {
-        final tokens = response.data["tokens"];
+      final loginResponse = await api.registerUser(
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          password: password
+      );
 
-        final data = Map<String, dynamic>.from(response.data);
-        final loginResponse = LoginResponse.fromJson(data);
+      if (loginResponse.tokens != null && loginResponse.success == true) {
+        final access = loginResponse.tokens!.access;
+        final refresh = loginResponse.tokens!.refresh;
 
-        if (tokens != null) {
-          final access = tokens['access'] ?? '';
-          final refresh = tokens['refresh'] ?? '';
+        await storage.saveToken(access, refresh);
 
-          // Save tokens securely
-          await storage.saveToken(refresh, access);
-
-          state = state.copyWith(
-              isLoading: false,
-              user: loginResponse.user
-          );
-        } else {
-          state = state.copyWith(
-            isLoading: false,
-            error: "Authentication tokens missing from server response.",
-          );
-        }
+        state = state.copyWith(
+          isLoading: false,
+          isLoggedIn: true,
+          token: access,
+          success: loginResponse.details,
+          user: loginResponse.user,
+        );
       }
     } catch (e) {
       state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
+          isLoading: false,
+          error: e.toString(),
+          success: null
       );
     }
   }
@@ -184,29 +159,82 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  /// GET current user
+  Future<void> getUser() async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final fetchedUser = await api.getUser();
+
+      state = state.copyWith(
+        isLoading: false,
+        user: fetchedUser,
+      );
+    } catch (err) {
+      state = state.copyWith(
+        isLoading: false,
+        error: err.toString(),
+      );
+    }
+  }
+
   /// LOGOUT
   Future<void> logout() async {
-    final storage = ref.read(tokenStorageProvider);
+    try {
+      state = state.copyWith(
+        error: null,
+        isLoading: true,
+      );
 
-    await storage.clearToken();
+      final response = await api.logoutUser();
 
-    state = AuthState.initial();
+      final storage = ref.read(tokenStorageProvider);
+      await storage.clearToken();
+
+      state = AuthState.initial();
+
+      state = state.copyWith(
+        isLoading: false,
+        isLoggedIn: false,
+        success: response.details
+      );
+    } catch(err) {
+      state = state.copyWith(
+        isLoading: false,
+        error: err.toString(),
+      );
+    }
+  }
+
+  /// Delete user
+  Future<void> deleteUser() async {
+    try {
+      state = state.copyWith(
+        error: null,
+        isLoading: true,
+      );
+
+      final response = await api.deleteUser();
+
+      final storage = ref.read(tokenStorageProvider);
+      await storage.clearToken();
+
+      state = AuthState.initial();
+
+      state = state.copyWith(
+        isLoading: false,
+        isLoggedIn: false,
+        success: response.details
+      );
+    } catch(err) {
+      state = state.copyWith(
+        isLoading: false,
+        error: err.toString(),
+      );
+    }
   }
 
   void clearError() {
     state = state.copyWith(error: null);
   }
 }
-
-/// PROVIDER
-final dioProvider = Provider<Dio>((ref) => Dio());
-
-final authControllerProvider =
-StateNotifierProvider<AuthController, AuthState>((ref) {
-  final dio = ref.watch(dioProvider);
-  final controller = AuthController(ref, dio);
-
-  controller.checkAuth();
-
-  return controller;
-});

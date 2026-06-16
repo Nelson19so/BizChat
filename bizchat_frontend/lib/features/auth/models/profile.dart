@@ -1,12 +1,12 @@
 class Profile {
   final String? profilePicture;
   final DateTime? dateOfBirth;
-  final String address;
-  final String state;
-  final String zipCode;
-  final String country;
-  final String phoneNumber;
-  final DateTime createdAt;
+  final String? address;
+  final String? state;
+  final String? zipCode;
+  final String? country;
+  final String? phoneNumber;
+  final DateTime? createdAt;
 
   Profile({
     this.profilePicture,
@@ -25,12 +25,27 @@ class Profile {
       dateOfBirth: json['date_of_birth'] != null
           ? DateTime.parse(json['date_of_birth'] as String)
           : null,
-      address: json['address'] as String,
-      state: json['state'] as String,
-      zipCode: json['zip_code'] as String,
-      country: json['country'] as String,
-      phoneNumber: json['phone_number'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      address: json['address'] as String?,
+      state: json['state'] as String?,
+      zipCode: json['zip_code'] as String?,
+      country: json['country'] as String?,
+      phoneNumber: json['phone_number'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+    );
+  }
+
+  factory Profile.empty() {
+    return Profile(
+      profilePicture: null,
+      dateOfBirth: null,
+      address: null,
+      state: null,
+      zipCode: null,
+      country: null,
+      phoneNumber: null,
+      createdAt: null,
     );
   }
 }
