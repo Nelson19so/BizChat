@@ -11,4 +11,5 @@ class ApiRoutes {
   static const String getUser = '/user/me/';
   static const String logoutUser = '/user/logout/';
   static const String deleteUser = '/user/delete_myaccount/';
+  static const String updateUser = '/user/profile/';
 }

@@ -9,6 +9,7 @@ class AppLayout extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int>? onTabSelected;
   final bool useBottomNav;
+  final bool useDefaultPaddingForHome;
 
   const AppLayout({
     super.key,
@@ -18,6 +19,7 @@ class AppLayout extends StatelessWidget {
     this.currentIndex = 0,
     this.onTabSelected,
     this.useBottomNav = false,
+    this.useDefaultPaddingForHome = true
   });
 
   @override
@@ -44,8 +46,8 @@ class AppLayout extends StatelessWidget {
                 width: double.infinity,
                 padding: EdgeInsets.only(
                   top: 14,
-                  left: 24,
-                  right: 24,
+                  left: useDefaultPaddingForHome ? 24 : 0,
+                  right: useDefaultPaddingForHome ? 24 : 0,
                   bottom: 9
                 ),
                 decoration: BoxDecoration(

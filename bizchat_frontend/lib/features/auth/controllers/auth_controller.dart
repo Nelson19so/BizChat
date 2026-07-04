@@ -1,6 +1,6 @@
 import 'package:bizchat_frontend/core/storage/token_storage.dart';
 import 'package:bizchat_frontend/features/auth/data/user_api_service.dart';
-import 'package:bizchat_frontend/features/auth/models/user.dart';
+import 'package:bizchat_frontend/features/settings/model/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 

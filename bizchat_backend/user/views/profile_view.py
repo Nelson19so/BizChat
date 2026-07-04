@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-from ..serializer import UserProfileSerializer, UserSerializer
+from ..serializer import UpdateProfileSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import UserProfile
@@ -27,34 +27,30 @@ class UserApiView(APIView):
 class UserProfileApiView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user.profile
-
     def get(self, request):
-        """Retrieve profile data"""
-        profile = self.get_object()
-        serializer = UserProfileSerializer(profile)
+        serializer = UserSerializer(request.user)
+
         return Response(serializer.data)
 
-    def put(self, request):
-        """Full update: Requires all fields"""
-        profile = self.get_object()
-        serializer = UserProfileSerializer(profile, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def patch(self, request):
-        """Partial update: Update only provided fields"""
-        profile = self.get_object()
-        partial=True
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UpdateProfileSerializer(
+            request.user.profile,
+            data=request.data,
+            partial=True,
+        )
 
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(
+            {
+                "success": True,
+                "message": "Profile updated successfully.",
+                "user": UserSerializer(request.user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 class SearchUserByPhoneNumberApiView(APIView):
     """Search user by phone number"""

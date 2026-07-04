@@ -91,19 +91,19 @@ class SettingsScreen extends ConsumerWidget {
                                 _settingsList(
                                   title: 'Account Details',
                                   icon: 'assets/svgs/profile-circle.svg',
-                                  onClick: () {}
+                                  onClick: () => Navigator.of(context).pushNamed('/accountDetails'),
                                 ),
 
                                 _settingsList(
                                   title: 'Settings',
                                   icon: 'assets/svgs/setting-2.svg',
-                                  onClick: () {}
+                                  onClick: () => Navigator.of(context).pushNamed('/notificationSettings'),
                                 ),
 
                                 _settingsList(
                                   title: 'Contact Us',
                                   icon: 'assets/svgs/sms-notification.svg',
-                                  onClick: () {}
+                                  onClick: () => Navigator.of(context).pushNamed('/contactUs'),
                                 )
                               ],
                             )
@@ -223,11 +223,19 @@ class SettingsScreen extends ConsumerWidget {
                     width: 5.5,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundImage: user?.profile.profilePicture != null ?
-                    NetworkImage('${user?.profile.profilePicture}') :
-                    AssetImage('assets/images/user.png'),
+                child: Container(
+                  height: 151,
+                  width: 151,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE1E1E1),
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: user?.profile.profilePicture != null
+                          ? NetworkImage('${user?.profile.profilePicture}')
+                          : const AssetImage('assets/images/ph_user-light.png'),
+                    ),
+                  ),
                 ),
               ),
             ),

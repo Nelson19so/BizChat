@@ -1,3 +1,5 @@
+import 'package:bizchat_frontend/core/network/api_routes.dart';
+
 class Profile {
   final String? profilePicture;
   final DateTime? dateOfBirth;
@@ -7,6 +9,7 @@ class Profile {
   final String? country;
   final String? phoneNumber;
   final DateTime? createdAt;
+  final bool? verified;
 
   Profile({
     this.profilePicture,
@@ -17,11 +20,24 @@ class Profile {
     required this.country,
     required this.phoneNumber,
     required this.createdAt,
+    required this.verified,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
+    String? rawPicture = json['profile_picture'] as String?;
+
+    // If the path is relative (e.g., starts with /media/), prepend the baseUrl
+    if (rawPicture != null && !rawPicture.startsWith('http')) {
+      // Ensure you handle duplicate or missing slashes carefully
+      final base = ApiRoutes.baseUrl.endsWith('/')
+          ? ApiRoutes.baseUrl.substring(0, ApiRoutes.baseUrl.length - 1)
+          : ApiRoutes.baseUrl;
+      final path = rawPicture.startsWith('/') ? rawPicture : '/$rawPicture';
+
+      rawPicture = '$base$path';
+    }
     return Profile(
-      profilePicture: json['profile_picture'] as String?,
+      profilePicture: rawPicture,
       dateOfBirth: json['date_of_birth'] != null
           ? DateTime.parse(json['date_of_birth'] as String)
           : null,
@@ -30,6 +46,7 @@ class Profile {
       zipCode: json['zip_code'] as String?,
       country: json['country'] as String?,
       phoneNumber: json['phone_number'] as String?,
+      verified: json['verified'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -46,6 +63,7 @@ class Profile {
       country: null,
       phoneNumber: null,
       createdAt: null,
+      verified: null,
     );
   }
 }

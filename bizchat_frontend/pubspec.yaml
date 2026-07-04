@@ -51,6 +51,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
   http: ^1.6.0
   flutter_svg: ^2.3.0
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:

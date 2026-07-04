@@ -1,7 +1,7 @@
 import 'package:bizchat_frontend/core/helper/error_helper.dart';
 import 'package:bizchat_frontend/core/network/api_routes.dart';
 import 'package:bizchat_frontend/features/auth/models/api_response.dart';
-import 'package:bizchat_frontend/features/auth/models/user.dart';
+import 'package:bizchat_frontend/features/settings/model/user.dart';
 import 'package:dio/dio.dart';
 
 class UserApiService {

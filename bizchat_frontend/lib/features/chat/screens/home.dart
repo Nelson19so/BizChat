@@ -87,10 +87,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(width: 13,),
 
                     GestureDetector(
-                      child: CircleAvatar(
-                        backgroundImage: user?.profile.profilePicture != null ?
-                        NetworkImage('${user?.profile.profilePicture}') :
-                        AssetImage('assets/images/user.png'),
+                      onTap: () => Navigator.pushNamed(context, '/accountDetails'),
+                      child: Container(
+                        height: 44,
+                        width: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE1E1E1),
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: user?.profile.profilePicture != null
+                              ? NetworkImage('${user?.profile.profilePicture}')
+                              : const AssetImage('assets/images/ph_user-light.png'),
+                          ),
+                        ),
                       ),
                     )
                   ],
@@ -108,7 +118,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               scrollDirection: Axis.horizontal,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(left: 24),
+                  padding: const EdgeInsets.only(left: 12, right: 12),
                   child: GestureDetector(
                     onTap: () {
 

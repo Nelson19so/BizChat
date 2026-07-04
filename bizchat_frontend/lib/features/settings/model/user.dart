@@ -1,4 +1,4 @@
-import 'package:bizchat_frontend/features/auth/models/profile.dart';
+import 'package:bizchat_frontend/features/settings/model/profile.dart';
 import 'package:bizchat_frontend/features/auth/models/statuses.dart';
 
 class User {

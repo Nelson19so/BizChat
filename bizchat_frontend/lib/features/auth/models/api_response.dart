@@ -1,4 +1,4 @@
-import 'package:bizchat_frontend/features/auth/models/user.dart';
+import 'package:bizchat_frontend/features/settings/model/user.dart';
 
 class AuthTokens {
   final String access;
