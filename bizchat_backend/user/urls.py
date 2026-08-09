@@ -9,7 +9,7 @@ from .views.profile_view import (
     UserApiView, 
     UserProfileApiView, 
     SearchUserByPhoneNumberApiView,
-    PublicProfileApiView
+    PublicProfileApiView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 

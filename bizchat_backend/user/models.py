@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
@@ -63,7 +64,26 @@ class UserProfile(models.Model):
     zip_code = models.CharField(max_length=4, null=True, blank=True)
     country = models.CharField(max_length=200, null=True, blank=True)
     phone_number = models.CharField(max_length=11, null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    profile_completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.email}"
+
+    def save(self, *args, **kwargs):
+        required_fields = [
+            self.date_of_birth, self.address, self.state,
+            self.zip_code, self.country, self.phone_number
+        ]
+        
+        is_all_filled = all(value not in [None, ""] for value in required_fields)
+        
+        if is_all_filled and not self.profile_completed_at:
+            self.profile_completed_at = timezone.now()
+            self.verified = True
+        elif not is_all_filled:
+            self.profile_completed_at = None
+            self.verified = False
+            
+        super().save(*args, **kwargs)

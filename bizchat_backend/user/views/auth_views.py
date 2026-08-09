@@ -33,7 +33,7 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response(
             {
                 'success': True,
-                'details': 'User registered successfully.',
+                'message': 'User registered successfully.',
                 "user": {
                     "id": user.id,
                     "email": user.email,
@@ -68,7 +68,7 @@ class UserLoginView(generics.GenericAPIView):
         return Response(
             {
                 "success": True,
-                "details": "Login successful.",
+                "message": "Login successful.",
                 "user": user_data,
                 "tokens": tokens
             },
@@ -87,11 +87,11 @@ class LogoutUserApiView(APIView):
 
             token.blacklist()
             return Response(
-                {"message": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT
+                {"message": "Successfully logged out.", 'success': True,}, status=status.HTTP_205_RESET_CONTENT
             )
         except Exception:
             return Response(
-                {"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST
+                {"message": "Invalid token.", "success": False}, status=status.HTTP_400_BAD_REQUEST
             )    
 
 
@@ -106,6 +106,6 @@ class DeleteUserApiView(APIView):
         user = request.user
         user.delete()
         return Response(
-            {"message": "Account deleted successfully."}, 
-            status=status.HTTP_204_NO_CONTENT
+            {"message": "Account deleted successfully.", "success": True}, 
+            status=status.HTTP_200_OK
         )

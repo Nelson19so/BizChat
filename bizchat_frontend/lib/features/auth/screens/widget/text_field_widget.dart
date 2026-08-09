@@ -6,7 +6,7 @@ Widget textFieldWidget({
   required TextEditingController textFieldController,
   required bool hasError
 }) {
-  final textFieldBorderColor =  hasError ? AppColors.secondaryGray4 : Colors.red;
+  final textFieldBorderColor =  hasError ? Colors.red : AppColors.secondaryGray4;
 
   return TextField(
     controller: textFieldController,
@@ -27,7 +27,7 @@ Widget textFieldWidget({
       fillColor: AppColors.secondaryGray3,
       filled: true,
       labelStyle: TextStyle(
-        color: hasError ? AppColors.secondaryGray5 : Colors.red,
+        color: hasError ? Colors.red : AppColors.secondaryGray5,
       ),
     ),
   );

@@ -1,7 +1,10 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/buildErrorMessage.dart';
+import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
-import 'package:bizchat_frontend/services/authService.dart';
+import 'package:bizchat_frontend/features/auth/screens/widget/text_field_widget.dart';
+import 'package:bizchat_frontend/features/chat/screens/home.dart';
+import 'package:bizchat_frontend/features/provider/provders.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +17,6 @@ class Register extends ConsumerStatefulWidget {
 }
 
 class _RegisterState extends ConsumerState<Register> {
-  final authservice = Authservice();
-
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
@@ -27,71 +28,158 @@ class _RegisterState extends ConsumerState<Register> {
   String? emailError;
   String? passwordError;
 
-  bool isLoading = false;
   bool isChecked = false;
+  bool _canRegister = false;
+  bool _handleRegister = false;
 
-  Future<void> handleRegister() async {
+  void _validatePassword() {
+    final password = passwordController.text.trim();
+    final strongPasswordRegex = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$');
+
     setState(() {
-      isLoading = true;
-      emailError = null;
-      firstNameError = null;
-      lastNameError = null;
-      passwordError = null;
+      if (password.isEmpty) {
+        passwordError = 'Password field is required';
+      } else if (password.length < 8) {
+        passwordError = 'Password must be at least 8 characters long';
+      } else if (!strongPasswordRegex.hasMatch(password)) {
+        passwordError = 'Requires uppercase, lowercase, number & symbol';
+      } else {
+        passwordError = null;
+      }
+    });
+  }
+
+  void _validateFirstName() {
+    final firstName = firstNameController.text.trim();
+    final letterRegEx = RegExp(r'^[a-zA-Z]+$');
+
+    setState(() {
+      if (firstName.isEmpty) {
+        firstNameError = 'First Name is required';
+      } else if (firstName.length <= 3) {
+        firstNameError = 'First name is too short';
+      } else if (!letterRegEx.hasMatch(firstName)) {
+        firstNameError = 'First name must contain only letters';
+      } else {
+        firstNameError = null;
+      }
+    });
+  }
+
+  void _validateLastName() {
+    final lastName = lastNameController.text.trim();
+    final letterRegEx = RegExp(r'^[a-zA-Z]+$');
+
+    setState(() {
+      if (lastName.isEmpty) {
+        lastNameError = 'Last Name is required';
+      } else if (lastName.length <= 3) {
+        lastNameError = 'Last name is too short';
+      }  else if (!letterRegEx.hasMatch(lastName)) {
+        lastNameError = 'Last name must contain only letters';
+      } else {
+        lastNameError = null;
+      }
+    });
+  }
+
+  void _validateEmail() {
+    final email = emailController.text.trim();
+
+    // Email format regular expression
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+    setState(() {
+      if (email.isEmpty) {
+        emailError = 'Email address is required';
+      } else if (!emailRegex.hasMatch(email)) {
+        emailError = 'Please enter a valid email address format';
+      } else if (email.length <= 5) {
+        emailError = 'Email must be longer than 5 characters';
+      } else {
+        emailError = null;
+      }
+    });
+  }
+
+  void _validateBeforeRegister() {
+    _validateFirstName();
+    _validateLastName();
+    _validateEmail();
+    _validatePassword();
+
+    setState(() {
+      _canRegister =
+        firstNameError == null
+        && lastNameError == null
+        && emailError == null
+        && passwordError == null;
+    });
+  }
+
+  late final ProviderSubscription<AuthState> _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    firstNameController.addListener(_validateFirstName);
+    lastNameController.addListener(_validateLastName);
+    emailController.addListener(_validateEmail);
+    passwordController.addListener(_validatePassword);
+
+    Future.microtask(() => {
+      ref.read(authControllerProvider.notifier).clearError()
     });
 
-    if (kDebugMode) {
-      print('Attempting registration with:');
-      print('First Name: ${firstNameController.text}');
-      print('Last Name: ${lastNameController.text}');
-      print('Email: ${emailController.text}');
-      print('Password: ${passwordController.text}');
-    }
+    _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
+      if (!mounted) return;
 
-    final result = await authservice.register(
-      first_name: firstNameController.text.trim(),
-      last_name: lastNameController.text.trim(),
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+      final justRegistered =
+        previous?.isLoading == true &&
+        next.isLoading == false &&
+        next.success != null &&
+        next.error == null &&
+        next.isLoggedIn == true;
 
-    if (!mounted) return;
+      if (justRegistered && !_handleRegister) {
+        _handleRegister = true;
 
-    setState(() => isLoading = false);
+        scaffholdmessage(
+          context: context,
+          message: '${next.success}',
+          type: ScaffHoldMessageType.successful
+        );
 
-    final statusCode = result['statusCode'];
-    final data = result['data'];
-
-    if (statusCode == 201) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(data["message"])));
-
-      // Navigate to chat/home screen
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      /// DISPLAY FIELD ERRORS
-      setState(() {
-        emailError = data["email"]?.join(", ");
-        firstNameError = data["first_name"]?.join(", ");
-        lastNameError = data["last_name"]?.join(", ");
-        passwordError = data["password"]?.join(", ");
-        print(data);
-      });
-    }
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    firstNameController.removeListener(_validateFirstName);
+    lastNameController.removeListener(_validateLastName);
+    emailController.removeListener(_validateEmail);
+    passwordController.removeListener(_validatePassword);
+
     firstNameController.dispose();
     lastNameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+
+    _subscription.close();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+
     return Scaffold(
       // backgroundColor: AppColors.secondaryWhite,
       appBar: AppBar(
@@ -106,7 +194,6 @@ class _RegisterState extends ConsumerState<Register> {
           TextButton(
             onPressed: () {
               Navigator.pushNamed(context, '/login');
-              ref.read(authControllerProvider.notifier).clearError();
             },
             child: Text(
               'login',
@@ -132,51 +219,10 @@ class _RegisterState extends ConsumerState<Register> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextField(
-                              controller: firstNameController,
-                              onChanged: (value) {
-                                setState(() {
-                                  firstNameError = null;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'First Name',
-                                labelStyle: TextStyle(
-                                  color: firstNameError != null
-                                      ? Colors.red
-                                      : AppColors.secondaryGray5,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    // Toggle color: Red if there is an error, otherwise gray
-                                    color: firstNameError != null
-                                        ? Colors.red
-                                        : AppColors.secondaryGray4,
-                                    width: firstNameError != null
-                                        ? 1.0
-                                        : 1.0, // Optional: make it thicker on error
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: firstNameError != null
-                                        ? Colors.red
-                                        : AppColors.secondaryGray4,
-                                    width: firstNameError != null ? 1.0 : 1.0,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                fillColor: WidgetStateColor.resolveWith((
-                                  states,
-                                ) {
-                                  if (states.contains(WidgetState.focused)) {
-                                    return AppColors.secondaryGray3;
-                                  }
-                                  return AppColors.secondaryGray3;
-                                }),
-                                filled: true,
-                              ),
+                            textFieldWidget(
+                              hintLabelText: 'First Name',
+                              textFieldController: firstNameController,
+                              hasError: firstNameError == null ? false : true,
                             ),
 
                             buildErrorMessage(firstNameError),
@@ -190,51 +236,10 @@ class _RegisterState extends ConsumerState<Register> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextField(
-                              controller: lastNameController,
-                              onChanged: (value) {
-                                setState(() {
-                                  lastNameError = null;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'Last Name',
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    // Toggle color: Red if there is an error, otherwise gray
-                                    color: lastNameError != null
-                                        ? Colors.red
-                                        : AppColors.secondaryGray4,
-                                    width: lastNameError != null
-                                        ? 1.0
-                                        : 1.0, // Optional: make it thicker on error
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: lastNameError != null
-                                        ? Colors.red
-                                        : AppColors.secondaryGray4,
-                                    width: lastNameError != null ? 1.0 : 1.0,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                fillColor: WidgetStateColor.resolveWith((
-                                  states,
-                                ) {
-                                  if (states.contains(WidgetState.focused)) {
-                                    return AppColors.secondaryGray3;
-                                  }
-                                  return AppColors.secondaryGray3;
-                                }),
-                                filled: true,
-                                labelStyle: TextStyle(
-                                  color: lastNameError != null
-                                      ? Colors.red
-                                      : AppColors.secondaryGray5,
-                                ),
-                              ),
+                            textFieldWidget(
+                              hintLabelText: 'Last Name',
+                              textFieldController: lastNameController,
+                              hasError: lastNameError == null ? false : true,
                             ),
 
                             buildErrorMessage(lastNameError),
@@ -249,49 +254,10 @@ class _RegisterState extends ConsumerState<Register> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextField(
-                        controller: emailController,
-                        onChanged: (value) {
-                          setState(() {
-                            emailError = null;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              // Toggle color: Red if there is an error, otherwise gray
-                              color: emailError != null
-                                  ? Colors.red
-                                  : AppColors.secondaryGray4,
-                              width: emailError != null
-                                  ? 1.0
-                                  : 1.0, // Optional: make it thicker on error
-                            ),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: emailError != null
-                                  ? Colors.red
-                                  : AppColors.secondaryGray4,
-                              width: emailError != null ? 1.0 : 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          fillColor: WidgetStateColor.resolveWith((states) {
-                            if (states.contains(WidgetState.focused)) {
-                              return AppColors.secondaryGray3;
-                            }
-                            return AppColors.secondaryGray3;
-                          }),
-                          filled: true,
-                          labelStyle: TextStyle(
-                            color: emailError != null
-                                ? Colors.red
-                                : AppColors.secondaryGray5,
-                          ),
-                        ),
+                      textFieldWidget(
+                        hintLabelText: 'Email Address',
+                        textFieldController: emailController,
+                        hasError: emailError == null ? false : true,
                       ),
 
                       buildErrorMessage(emailError),
@@ -324,11 +290,6 @@ class _RegisterState extends ConsumerState<Register> {
                               child: TextField(
                                 controller: passwordController,
                                 obscureText: obscurePassword,
-                                onChanged: (value) {
-                                  setState(() {
-                                    passwordError = null;
-                                  });
-                                },
                                 decoration: InputDecoration(
                                   label: Container(
                                     padding: EdgeInsets.symmetric(
@@ -428,6 +389,14 @@ class _RegisterState extends ConsumerState<Register> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 20,),
+
+                  if (authState.error != null && authState.isLoading == false)
+                    Text(
+                      authState.error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                 ],
               ),
 
@@ -444,20 +413,29 @@ class _RegisterState extends ConsumerState<Register> {
                         ),
                         minimumSize: const Size(200, 50),
                       ),
-                      onPressed: () {
+                      onPressed: authState.isLoading ? null : () {
+                        _validateBeforeRegister();
+
                         if (!isChecked) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Please agree to receive newsletters to proceed.',
-                              ),
-                            ),
+                          scaffholdmessage(
+                            context: context,
+                            message: 'Please agree to receive newsletters to proceed.',
+                            type: ScaffHoldMessageType.failed,
                           );
                           return;
                         }
-                        handleRegister();
+
+                        /// Register provider
+                        if (_canRegister) {
+                          ref.read(authControllerProvider.notifier).register(
+                              firstName: firstNameController.text.trim(),
+                              lastName: lastNameController.text.trim(),
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim()
+                          );
+                        }
                       },
-                      child: isLoading
+                      child: authState.isLoading
                           ? SizedBox(
                               width: 24,
                               height: 24,

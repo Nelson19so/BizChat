@@ -5,7 +5,8 @@ from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import authenticate
 from .utils import validate_name, validate_phone_number
-from datetime import date
+from datetime import date, timedelta
+from django.utils import timezone
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,7 +43,21 @@ class UserSerializer(serializers.ModelSerializer):
         profile = getattr(obj, 'profile', None)
 
         if not profile:
-            return None
+            return {
+                "is_profile_filled": False,
+                "verified": False
+            }  
+
+        is_verified = False
+        
+        if profile.profile_completed_at:
+            one_day_passed = timezone.now() >= (profile.profile_completed_at + timedelta(days=1))
+            
+            if one_day_passed:
+                is_verified = True
+                if not profile.verified:
+                    profile.verified = True
+                    profile.save(update_fields=['verified'])    
 
         return {
             "profile_picture": profile.profile_picture.url if profile.profile_picture else None,
@@ -53,6 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
             "country": profile.country,
             "phone_number": profile.phone_number,
             "created_at": profile.created_at,
+            "verified": is_verified,
         }
 
 
@@ -74,11 +90,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         }
     )
     password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
+    # confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'first_name', 'last_name', 'password', 'confirm_password')
+        fields = (
+            'email', 'first_name', 'last_name', 'password', 
+            # 'confirm_password'
+        )
 
     def validate_email(self, value):
         value = value.lower().strip()
@@ -95,10 +114,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         password = attrs.get("password")
-        confirm_password = attrs.get("confirm_password")
+        # confirm_password = attrs.get("confirm_password")
 
-        if password != confirm_password:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        # if password != confirm_password:
+        #     raise serializers.ValidationError({"password": "Password fields didn't match."})
         
         try:
             validate_password(password)
@@ -121,7 +140,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        validated_data.pop('confirm_password', None)
+        # validated_data.pop('confirm_password', None)
 
         try:
             with transaction.atomic():
@@ -162,14 +181,25 @@ class UserLoginSerializer(serializers.Serializer):
         return attrs
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+
     class Meta:
         model = UserProfile
         fields = [
-            'user', 'profile_picture', 'date_of_birth', 
-            'address', 'state', 'zip_code', 'country', 'phone_number', 
+            "first_name",
+            "last_name",
+            "email",
+            "profile_picture",
+            "date_of_birth",
+            "address",
+            "state",
+            "zip_code",
+            "country",
+            "phone_number",
         ]
-        read_only_fields = ('id', 'user', 'created_at')
 
     def validate_date_of_birth(self, value):
         if value and value.date() > date.today():
@@ -181,8 +211,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Phone number must contain only digits.")
         if value and len(value) < 10:
             raise serializers.ValidationError("Phone number is too short.")
-        if UserProfile.objects.filter(phone_number=value).exists():
-            raise serializers.ValidationError("Phone number is registered")
+        
+        queryset = UserProfile.objects.filter(phone_number=value)
+        
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("Phone number is registered.")
+            
         return value
 
     def validate_zip_code(self, value):
@@ -199,5 +235,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 "state": "State is required for addresses in a country"
             })
 
-        return attrs
+        return attrs    
 
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        # Update User model fields
+        user.first_name = validated_data.get("first_name", user.first_name)
+        user.last_name = validated_data.get("last_name", user.last_name)
+        user.email = validated_data.get("email", user.email)
+        user.save()
+
+        # Update Profile model fields (Includes profile_picture)
+        instance.profile_picture = validated_data.get("profile_picture", instance.profile_picture)
+        instance.date_of_birth = validated_data.get("date_of_birth", instance.date_of_birth)
+        instance.address = validated_data.get("address", instance.address)
+        instance.state = validated_data.get("state", instance.state)
+        instance.zip_code = validated_data.get("zip_code", instance.zip_code)
+        instance.country = validated_data.get("country", instance.country)
+        instance.phone_number = validated_data.get("phone_number", instance.phone_number)
+
+        instance.save()
+        return instance
