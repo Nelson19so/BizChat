@@ -1,6 +1,7 @@
 import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/capitalize_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/full_screen_image_viewer.dart';
 import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/features/provider/provders.dart';
 import 'package:flutter/material.dart';
@@ -71,17 +72,35 @@ class AccountProfileScreen extends ConsumerWidget {
           Expanded(
             child: Column(
               children: [
-                Container(
-                  height: 151,
-                  width: 151,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE1E1E1),
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: profilePic != null
-                          ? NetworkImage(profilePic)
-                          : const AssetImage('assets/images/ph_user-light.png'),
+                GestureDetector(
+                  onTap: () {
+                    final ImageProvider targetImage;
+
+                    if (profilePic != null && profilePic!.contains('http')) {
+                      targetImage = NetworkImage(profilePic!);
+                    } else {
+                      targetImage = const AssetImage('assets/images/ph_user-light.png');
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FullScreenImageViewer(imageProvider: targetImage),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 151,
+                    width: 151,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE1E1E1),
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: profilePic != null
+                            ? NetworkImage(profilePic)
+                            : const AssetImage('assets/images/ph_user-light.png'),
+                      ),
                     ),
                   ),
                 ),

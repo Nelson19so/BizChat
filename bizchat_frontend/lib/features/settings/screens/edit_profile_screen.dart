@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/full_screen_image_viewer.dart';
 import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/core/widget/screen_loader.dart';
+import 'package:bizchat_frontend/core/widget/show_dialog.dart';
 import 'package:bizchat_frontend/features/provider/provders.dart';
 import 'package:bizchat_frontend/features/settings/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +121,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () async {
+                  if (_selectedImage != null) {
+                    final confirmed = await showAppDialog(
+                      context: context,
+                      message: 'Do you want to exit without saving your data?',
+                      confirmText: 'Exit',
+                    );
+
+                    if (confirmed == true) Navigator.pop(context);
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
                 child: SvgPicture.asset('assets/svgs/Back.svg'),
               ),
 
@@ -145,19 +159,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           children: [
             Stack(
               children: [
-                Container(
-                  height: 151,
-                  width: 151,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE1E1E1),
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: _selectedImage != null
-                          ? FileImage(_selectedImage!) as ImageProvider
-                          : profilePic != null
-                          ? NetworkImage(profilePic)
-                          : const AssetImage('assets/images/ph_user-light.png'),
+                GestureDetector(
+                  onTap: () {
+                    final ImageProvider targetImage;
+
+                    if (profilePic != null && profilePic!.contains('http')) {
+                      targetImage = NetworkImage(profilePic!);
+                    } else {
+                      targetImage = const AssetImage('assets/images/ph_user-light.png');
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FullScreenImageViewer(imageProvider: targetImage),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 151,
+                    width: 151,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE1E1E1),
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: _selectedImage != null
+                            ? FileImage(_selectedImage!) as ImageProvider
+                            : profilePic != null
+                            ? NetworkImage(profilePic)
+                            : const AssetImage('assets/images/ph_user-light.png'),
+                      ),
                     ),
                   ),
                 ),
@@ -197,11 +229,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 const SizedBox(width: 13,),
 
                 Expanded(
-                    child: _editProfileTextField(
-                      controller: _lastNameController,
-                      hinText: 'Last Name',
-                      rightRowField: true,
-                    )
+                  child: _editProfileTextField(
+                    controller: _lastNameController,
+                    hinText: 'Last Name',
+                    rightRowField: true,
+                  )
                 ),
               ],
             ),
@@ -265,7 +297,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             _editProfileTextField(
               controller: _phoneNumber,
               hinText: 'Phone Number',
-              maxLength: 11
+              maxLength: 11,
+              readOnly: _phoneNumber.text.isNotEmpty,
             ),
 
             const SizedBox(height: 39,),
@@ -325,10 +358,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     bool leftRowField = false,
     bool rightRowField = false,
     int? maxLength,
+    bool readOnly = false
   }) {
     return TextField(
       controller: controller,
       maxLength: maxLength ?? 244,
+      readOnly: readOnly,
       decoration: InputDecoration(
         hintText: hinText,
         counterText: "",

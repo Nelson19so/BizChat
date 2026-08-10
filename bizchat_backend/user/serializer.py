@@ -55,9 +55,9 @@ class UserSerializer(serializers.ModelSerializer):
             
             if one_day_passed:
                 is_verified = True
-                if not profile.verified:
-                    profile.verified = True
-                    profile.save(update_fields=['verified'])    
+                if not profile.is_verified:
+                    profile.is_verified = True
+                    profile.save(update_fields=['is_verified'])    
 
         return {
             "profile_picture": profile.profile_picture.url if profile.profile_picture else None,

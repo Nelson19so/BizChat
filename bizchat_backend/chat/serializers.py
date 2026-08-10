@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import ChatRoom, Message
+from .models import ChatRoom, Message, StatusPost
 from user.serializer import UserSerializer
 
 
@@ -28,6 +27,19 @@ class RoomListSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Message
         fields = "__all__"
+
+
+class StatusPostSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StatusPost
+        fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']
+
+    def get_user(self, obj):
+        return UserSerializer(obj).data if obj else None
+

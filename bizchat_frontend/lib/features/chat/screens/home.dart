@@ -27,15 +27,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       _loaded = true;
 
       ref.read(authControllerProvider.notifier).getUser();
+      ref.read(chatRoomsControllerProvider.notifier).getUserChatRooms();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
+    final chatRooms = ref.watch(chatRoomsControllerProvider);
+
     final user = authState.user;
 
-    if (authState.isLoading) {
+    if (authState.isLoading || chatRooms.isLoadingRooms) {
       return const ScreenLoader();
     }
 
