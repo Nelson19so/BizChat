@@ -4,31 +4,31 @@ import 'package:flutter_riverpod/legacy.dart';
 
 class ChatRoomsControllerState {
   final bool isLoadingRooms;
-  final ChatRoomModel? chatRooms;
+  final List<ChatRoomModel>? rooms;
   final String? error;
 
   ChatRoomsControllerState({
     required this.isLoadingRooms,
-    required this.chatRooms,
+    required this.rooms,
     required this.error,
   });
 
   factory ChatRoomsControllerState.initial() {
     return ChatRoomsControllerState(
       isLoadingRooms: false,
-      chatRooms: null,
+      rooms: null,
       error: null,
     );
   }
 
   ChatRoomsControllerState copyWith({
     bool? isLoadingRooms,
-    ChatRoomModel? chatRooms,
+    List<ChatRoomModel>? rooms,
     String? error,
   }) {
     return ChatRoomsControllerState(
       isLoadingRooms: isLoadingRooms ?? this.isLoadingRooms,
-      chatRooms: chatRooms ?? this.chatRooms,
+      rooms: rooms ?? this.rooms,
       error: error ?? this.error
     );
   }
@@ -43,7 +43,7 @@ class ChatRoomsController extends StateNotifier<ChatRoomsControllerState> {
     try {
       state = state.copyWith(
         isLoadingRooms: true,
-        chatRooms: null,
+        rooms: null,
         error: null,
       );
 
@@ -51,12 +51,12 @@ class ChatRoomsController extends StateNotifier<ChatRoomsControllerState> {
 
       state = state.copyWith(
         isLoadingRooms: false,
-        chatRooms: response,
+        rooms: response,
       );
     } catch (err) {
       state = state.copyWith(
         isLoadingRooms: false,
-        chatRooms: null,
+        rooms: null,
         error: err.toString(),
       );
     }

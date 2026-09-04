@@ -14,5 +14,5 @@ class ApiRoutes {
   static const String updateUser = '/user/profile/';
 
   /// Chat url endpoint
-  static const String getAllChatList = '/api/messages/';
+  static const String getAllChatList = '/api/chat_list/';
 }

@@ -2,8 +2,8 @@ import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/bottom_nav_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/screen_loader.dart';
+import 'package:bizchat_frontend/features/chat/widget/chat_list_widget.dart';
 import 'package:bizchat_frontend/features/provider/provders.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -169,108 +169,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             height: 4,
             width: 45,
             decoration: BoxDecoration(
-              color: Color(0xFFE6E6E6),
+              color: const Color(0xFFE6E6E6),
               borderRadius: BorderRadius.circular(100),
             ),
           ),
 
           const SizedBox(height: 24,),
 
-          Expanded(
+          (chatRooms.error != null)
+              ? Expanded(
+            child: Center(
+              child: Text(
+                'Error: ${chatRooms.error}',
+                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
+              ),
+            ),
+          )
+              : (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
+              ? const Expanded(
+            child: Center(
+              child: Text(
+                'No chats yet',
+                style: TextStyle(
+                  color: AppColors.secondaryBlack2,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          )
+
+              : Expanded(
             child: ListView.separated(
+              itemCount: chatRooms.rooms!.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 30,),
               itemBuilder: (context, index) {
+                final room = chatRooms.rooms![index];
+                final chatUser = room.user;
+
+                final ImageProvider profileImage = (chatUser?.profile.profilePicture != null && chatUser!.profile.profilePicture!.isNotEmpty)
+                    ? NetworkImage(chatUser.profile.profilePicture!)
+                    : const AssetImage('assets/images/demo/demo_user.png');
+
                 return GestureDetector(
                   onTap: () {
-                    if (kDebugMode) {
-                      print(index);
-                    }
+                    // Handle chat screen navigation here
                   },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 26,
-                              backgroundImage: user?.profile.profilePicture != null
-                                ? NetworkImage('${user?.profile.profilePicture}')
-                                : const AssetImage('assets/images/demo/demo_user.png') as ImageProvider,
-                            ),
-
-                            const SizedBox(width: 12,),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Alex Linderson',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.secondaryBlack,
-                                    ),
-                                  ),
-
-                                  Text(
-                                    'How are you doing today? How are you doing today?',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.secondaryWhiteGrey,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(width: 4,),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('2 min ago', style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryWhiteGrey,
-                          ),),
-
-                          const SizedBox(height: 7,),
-
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(100)
-                            ),
-                            child: Text('8', style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.secondaryWhite,
-                            ),),
-                          )
-                        ],
-                      )
-                    ],
+                  child: ChatListWidget(
+                    userName: '${chatUser?.firstName} ${chatUser?.lastName}',
+                    userLastMessage: room.lastMessage.isNotEmpty ? room.lastMessage : "",
+                    userLastMessageTimeOrDate: room.lastMessageTime != null
+                        ? '${room.lastMessageTime!.hour}:${room.lastMessageTime!.minute}'
+                        : '',
+                    userProfilePic: profileImage,
                   ),
                 );
               },
-
-              separatorBuilder: (context, index) => const SizedBox(height: 30,),
-              itemCount: 10,
             ),
           ),
         ],
       ),
+
     );
   }
 }

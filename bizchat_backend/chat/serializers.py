@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import ChatRoom, Message, StatusPost
 from user.serializer import UserSerializer
+from user.models import CustomUser
 
 
 class RoomListSerializer(serializers.ModelSerializer):
@@ -30,7 +31,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = "__all__"
+        fields = ["id", "room", "sender", "text", "created_at"]
 
 
 class StatusPostSerializer(serializers.ModelSerializer):
@@ -43,3 +44,21 @@ class StatusPostSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
         return UserSerializer(obj).data if obj else None
 
+
+class CreateRoomSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+
+    def validate_user_id(self, value):
+        try:
+            user = CustomUser.objects.get(id=value)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("User does not exist")
+
+        request = self.context['request']
+
+        if user == request.user:
+            raise serializers.ValidationError(
+                "You cannot create chat with yourself"
+            )
+
+        return value
