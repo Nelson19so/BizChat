@@ -15,4 +15,5 @@ class ApiRoutes {
 
   /// Chat url endpoint
   static const String getAllChatList = '/api/chat_list/';
+  static const String getAllChatListImessage = '/api/chat_list_imessage/';
 }
