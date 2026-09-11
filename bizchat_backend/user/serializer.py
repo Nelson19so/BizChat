@@ -3,11 +3,29 @@ from .models import CustomUser, UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.contrib.auth import authenticate
-from .utils import validate_name, validate_phone_number
+from django.contrib.auth import authenticate, get_user_model
+from .utils import validate_name
 from datetime import date, timedelta
 from django.utils import timezone
 
+
+User = get_user_model()
+
+
+# Used strictly for participant card inside rooms list
+class SimpleUserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "profile_picture"]
+
+    def get_profile_picture(self, obj):
+        profile = getattr(obj, "profile", None) 
+        if profile and profile.profile_picture:
+            return profile.profile_picture.url
+        return None
+    
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
@@ -55,9 +73,9 @@ class UserSerializer(serializers.ModelSerializer):
             
             if one_day_passed:
                 is_verified = True
-                if not profile.verified:
-                    profile.verified = True
-                    profile.save(update_fields=['verified'])    
+                if not profile.is_verified:
+                    profile.is_verified = True
+                    profile.save(update_fields=['is_verified'])    
 
         return {
             "profile_picture": profile.profile_picture.url if profile.profile_picture else None,

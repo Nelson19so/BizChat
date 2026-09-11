@@ -4,7 +4,7 @@ from django.conf import settings
 # Chat model
 
 class ChatRoom(models.Model):
-    participants = models.ManyToManyField("user.CustomUser", related_name="rooms")
+    participants = models.ManyToManyField("user.CustomUser", related_name="chatroom")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

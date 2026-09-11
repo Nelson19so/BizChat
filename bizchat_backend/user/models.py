@@ -81,9 +81,9 @@ class UserProfile(models.Model):
         
         if is_all_filled and not self.profile_completed_at:
             self.profile_completed_at = timezone.now()
-            self.verified = True
+            self.is_verified = True
         elif not is_all_filled:
             self.profile_completed_at = None
-            self.verified = False
+            self.is_verified = False
             
         super().save(*args, **kwargs)

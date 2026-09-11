@@ -12,4 +12,8 @@ class ApiRoutes {
   static const String logoutUser = '/user/logout/';
   static const String deleteUser = '/user/delete_myaccount/';
   static const String updateUser = '/user/profile/';
+
+  /// Chat url endpoint
+  static const String getAllChatList = '/api/chat_list/';
+  static const String getAllChatListImessage = '/api/chat_list_imessage/';
 }
