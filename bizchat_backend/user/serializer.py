@@ -22,6 +22,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 
     def get_profile_picture(self, obj):
         profile = getattr(obj, "profile", None) 
+        
         if profile and profile.profile_picture:
             return profile.profile_picture.url
         return None
