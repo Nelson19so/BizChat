@@ -61,6 +61,8 @@ class SearchUserByPhoneNumberApiView(APIView):
 
         user_profile = UserProfile.objects.filter(
             phone_number=phone_number
+        ).only(
+            "phone_number"
         ).first()
 
         if not user_profile:
