@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-from ..serializer import UpdateProfileSerializer, UserSerializer
+from ..serializer import UpdateProfileSerializer, UserSerializer, SimpleUserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import UserProfile
@@ -51,29 +51,6 @@ class UserProfileApiView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
-class SearchUserByPhoneNumberApiView(APIView):
-    """Search user by phone number"""
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, phone_number):
-        phone_number = phone_number.strip()
-
-        user_profile = UserProfile.objects.filter(
-            phone_number=phone_number
-        ).only(
-            "phone_number"
-        ).first()
-
-        if not user_profile:
-            return Response(
-                {"details": "This user is not registered"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        serializer = UserSerializer(user_profile.user)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PublicProfileApiView(APIView):

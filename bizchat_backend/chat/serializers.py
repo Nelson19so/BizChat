@@ -1,7 +1,25 @@
 from rest_framework import serializers
 from .models import ChatRoom, Message, StatusPost
-from user.serializer import SimpleUserSerializer
 from user.models import CustomUser
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+# Used strictly for participant card inside rooms list
+class SimpleUserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "profile_picture"]
+
+    def get_profile_picture(self, obj):
+        profile = getattr(obj, "profile", None) 
+        
+        if profile and profile.profile_picture:
+            return profile.profile_picture.url
+        return None
 
 
 class RoomListSerializer(serializers.ModelSerializer):
@@ -62,6 +80,12 @@ class StatusPostSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']
 
 
+class UserSearchFeedSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ChatRoom        
+
+
 class CreateRoomSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
@@ -79,3 +103,4 @@ class CreateRoomSerializer(serializers.Serializer):
             )
 
         return value
+    

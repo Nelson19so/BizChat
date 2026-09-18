@@ -2,7 +2,8 @@ from rest_framework import generics
 from .models import ChatRoom, Message, StatusPost
 from .serializers import (
     RoomListSerializer, MessageSerializer, 
-    StatusPostSerializer, CreateRoomSerializer
+    StatusPostSerializer, CreateRoomSerializer,
+    SimpleUserSerializer
 )
 from rest_framework.views import APIView, status
 from rest_framework.permissions import IsAuthenticated
@@ -41,7 +42,7 @@ class UserRoomsView(generics.ListAPIView):
         ).prefetch_related(
             participant_prefetch, 
             messages_prefetch
-        )
+        ).distinct()
 
 
 class UserRoomsWithChatView(generics.ListAPIView):
@@ -86,6 +87,34 @@ class SearchMyCustomersByNameView(generics.ListApiView):
             Q(first_name__icontains=single_name) |
             Q(last_name__icontains=single_name),
         ).distinct()
+
+
+class SearchUserByPhoneNumberApiView(APIView):
+    """Search user by phone number"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, phone_number):
+        phone_number = phone_number.strip()
+
+        user_profile = User.objects.filter(
+            profile__phone_number=phone_number
+        ).select_related(
+            "profile",
+        ).only(
+            "profile",
+            "profile__id",
+            "profile__phone_number",
+        ).distinct().first()
+
+        if not user_profile:
+            return Response(
+                {"details": "This user is not registered"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = SimpleUserSerializer(user_profile)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MessageListView(generics.ListAPIView):

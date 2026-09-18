@@ -11,21 +11,6 @@ from django.utils import timezone
 
 User = get_user_model()
 
-
-# Used strictly for participant card inside rooms list
-class SimpleUserSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ["id", "first_name", "last_name", "profile_picture"]
-
-    def get_profile_picture(self, obj):
-        profile = getattr(obj, "profile", None) 
-        
-        if profile and profile.profile_picture:
-            return profile.profile_picture.url
-        return None
     
 
 class UserSerializer(serializers.ModelSerializer):
@@ -276,3 +261,4 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
