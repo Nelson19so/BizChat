@@ -43,9 +43,9 @@ class RoomListSerializer(serializers.ModelSerializer):
         return msg.text if msg else ""
 
     def get_last_message_time(self, obj):
-        messages = obj.messages.all()
-        msg = messages[0] if messages else None
-        return msg.created_at if msg else None
+        messages_time = obj.messages.all()
+        msg_time = messages_time[0] if messages_time else None
+        return msg_time.created_at if msg_time else None
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -80,10 +80,10 @@ class StatusPostSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']
 
 
-class UserSearchFeedSerializer(serializers.ModelSerializer):
+# class UserSearchFeedSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = ChatRoom        
+#     class Meta:
+#         model = ChatRoom        
 
 
 class CreateRoomSerializer(serializers.Serializer):
