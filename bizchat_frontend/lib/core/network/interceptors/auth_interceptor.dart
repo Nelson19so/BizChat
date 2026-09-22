@@ -28,7 +28,7 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // 🚫 prevent infinite loop
+    // prevent infinite loop
     if (err.requestOptions.extra["retry"] == true) {
       return handler.next(err);
     }

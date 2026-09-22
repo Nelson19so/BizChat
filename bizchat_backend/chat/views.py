@@ -59,7 +59,7 @@ class UserRoomsWithChatView(generics.ListAPIView):
 
 
 class SearchMyCustomersByNameView(generics.ListApiView):
-    serializer_class = RoomListSerializer
+    serializer_class = SimpleUserSerializer
 
     def get_queryset(self):
         search_input = self.request.query_params.get("search_name", '').split()
