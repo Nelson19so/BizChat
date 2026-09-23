@@ -33,3 +33,13 @@ class StatusPost(models.Model):
 
     def __str__(self):
         return self.user
+
+
+class UserChatRoomSearchHistory(models.Model):
+    user = models.ForeignKey(
+        'user.CustomUser', on_delete=models.CASCADE, related_name='search_history_user'
+    )
+    searched_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user

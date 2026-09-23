@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .models import ChatRoom, Message, StatusPost
+from .models import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers import (
     RoomListSerializer, MessageSerializer, 
     StatusPostSerializer, CreateRoomSerializer,
@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from user.models import CustomUser
 from django.db.models import Q, Prefetch
+from django.core.cache import cache
 
 
 User = get_user_model()
@@ -45,17 +46,31 @@ class UserRoomsView(generics.ListAPIView):
         ).distinct()
 
 
+'''
+User Chat Room with Cache and database optimization
+This View filters user rooms with Chat a Message
+'''
 class UserRoomsWithChatView(generics.ListAPIView):
     serializer_class = RoomListSerializer
 
     def get_queryset(self):
-        return ChatRoom.objects.filter(
-            participants=self.request.user,
-            messages__sender=self.request.user
-        ).prefetch_related(
-            participant_prefetch, 
-            messages_prefetch
-        ).distinct()
+        chat_room_key = f"chat_room_user_{self.request.user.id}"
+
+        queryset = cache.get(chat_room_key)
+
+        if not queryset:
+            queryset = ChatRoom.objects.filter(
+                participants=self.request.user,
+                messages__sender=self.request.user
+            ).prefetch_related(
+                participant_prefetch, 
+                messages_prefetch
+            ).distinct()
+
+            # Set Chat room for user
+            cache.set(chat_room_key, queryset, 45)
+
+        return queryset
 
 
 class SearchMyCustomersByNameView(generics.ListApiView):
@@ -76,17 +91,26 @@ class SearchMyCustomersByNameView(generics.ListApiView):
         )
 
         if len(name_part) >= 2:
-            first, last = name_part[0], name_part[-1]
-            return base_queryset.objects.filter(
+            first, last = name_part[0], name_part[1]
+            queryset = base_queryset.objects.filter(
                 first_name__icontains=first,
                 last_name__icontains=last,
             ).distinct()
 
-        single_name = name_part[0]
-        return base_queryset.objects.filter(
-            Q(first_name__icontains=single_name) |
-            Q(last_name__icontains=single_name),
-        ).distinct()
+        else:
+            single_name = name_part[0]
+            queryset = base_queryset.objects.filter(
+                Q(first_name__icontains=single_name) |
+                Q(last_name__icontains=single_name),
+            ).distinct()
+
+        if queryset:
+            # Create a User search history
+            UserChatRoomSearchHistory.objects.get_or_create(
+                user=queryset
+            )
+
+        return queryset
 
 
 class SearchUserByPhoneNumberApiView(APIView):
