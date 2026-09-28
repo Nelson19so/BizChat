@@ -1,6 +1,7 @@
 import 'package:bizchat_frontend/core/helper/error_helper.dart';
 import 'package:bizchat_frontend/core/network/api_routes.dart';
 import 'package:bizchat_frontend/features/chat/model/chatRoom.dart';
+import 'package:bizchat_frontend/features/chat/model/simpleuser.dart';
 import 'package:dio/dio.dart';
 
 class ChatApiService {
@@ -10,11 +11,41 @@ class ChatApiService {
 
   Future<List<ChatRoomModel>> getUserChatRoomsList() async {
     try {
+      final response = await _dio.get(ApiRoutes.getAllChatListImessage);
+
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => ChatRoomModel.fromJson(json as Map<String, dynamic>)).toList();
+
+    } on DioException catch (error) {
+      throw ErrorHelper.getErrorMessage(error);
+    }
+  }
+
+  Future<List<ChatRoomModel>> getAllUserChatRoomsList() async {
+    try {
       final response = await _dio.get(ApiRoutes.getAllChatList);
 
       final List<dynamic> data = response.data as List<dynamic>;
       return data.map((json) => ChatRoomModel.fromJson(json as Map<String, dynamic>)).toList();
 
+    } on DioException catch (error) {
+      throw ErrorHelper.getErrorMessage(error);
+    }
+  }
+
+  /// search user by phone number
+  Future<SimpleUser> searchOrAddUserByPhoneNumber(String phoneNumber) async {
+    try {
+      final Map<String, dynamic> queryParameters = <String, dynamic>{
+        "phone_number": phoneNumber,
+      };
+
+      final response = await _dio.get(
+        ApiRoutes.searchUserByPhone,
+        queryParameters: queryParameters
+      );
+
+      return SimpleUser.fromJson(response.data);
     } on DioException catch (error) {
       throw ErrorHelper.getErrorMessage(error);
     }

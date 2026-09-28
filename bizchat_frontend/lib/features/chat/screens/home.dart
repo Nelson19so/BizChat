@@ -23,6 +23,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
 
     Future.microtask(() {
+      ref.read(chatRoomsControllerProvider.notifier).clearError();
+
       if (_loaded) return;
       _loaded = true;
 
@@ -176,16 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           const SizedBox(height: 24,),
 
-          (chatRooms.error != null)
-              ? Expanded(
-            child: Center(
-              child: Text(
-                'Error: ${chatRooms.error}',
-                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
-              ),
-            ),
-          )
-              : (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
+          (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
               ? const Expanded(
             child: Center(
               child: Text(
@@ -204,31 +197,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 30,),
               itemBuilder: (context, index) {
                 final room = chatRooms.rooms![index];
-                final chatUser = room.user;
+                final chatUser = room.participant;
 
-                final ImageProvider profileImage = (chatUser?.profile.profilePicture != null && chatUser!.profile.profilePicture!.isNotEmpty)
-                    ? NetworkImage(chatUser.profile.profilePicture!)
+                final ImageProvider profileImage = (chatUser?.profilePicture != null && chatUser!.profilePicture!.isNotEmpty)
+                    ? NetworkImage(chatUser.profilePicture!)
                     : const AssetImage('assets/images/demo/demo_user.png');
 
-                return GestureDetector(
-                  onTap: () {
-                    // Handle chat screen navigation here
-                  },
-                  child: ChatListWidget(
-                    userName: '${chatUser?.firstName} ${chatUser?.lastName}',
-                    userLastMessage: room.lastMessage.isNotEmpty ? room.lastMessage : "",
-                    userLastMessageTimeOrDate: room.lastMessageTime != null
-                        ? '${room.lastMessageTime!.hour}:${room.lastMessageTime!.minute}'
-                        : '',
-                    userProfilePic: profileImage,
-                  ),
+                return ChatListWidget(
+                  userId: chatUser!.id,
+                  userName: '${chatUser.firstName} ${chatUser.lastName}',
+                  userLastMessage: "${room.lastMessage!.isNotEmpty
+                      ? room.lastMessage
+                      : ""}",
+                  userLastMessageTimeOrDate: room.lastMessageTime != null
+                      ? '${room.lastMessageTime!.hour}:${room.lastMessageTime!.minute}'
+                      : '',
+                  userProfilePic: profileImage,
                 );
               },
             ),
           ),
         ],
       ),
-
     );
   }
 }

@@ -11,8 +11,6 @@ from django.utils import timezone
 
 User = get_user_model()
 
-    
-
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
     statuses = serializers.SerializerMethodField()
