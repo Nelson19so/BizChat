@@ -1,17 +1,17 @@
 from rest_framework import generics
 from .models        import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers   import (
-    RoomListSerializer, MessageSerializer, StatusPostSerializer, CreateRoomSerializer,
-    SimpleUserSerializer
+    RoomListSerializer, MessageSerializer, StatusPostSerializer, 
+    CreateRoomSerializer, SimpleUserSerializer
 )
 from rest_framework.views import APIView, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from user.models     import CustomUser
-from django.db.models import Q, Prefetch
-from django.core.cache import cache
+from django.shortcuts   import get_object_or_404
+from user.models        import CustomUser
+from django.db.models   import Q, Prefetch
+from django.core.cache  import cache
 
 
 User = get_user_model()

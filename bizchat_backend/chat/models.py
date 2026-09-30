@@ -24,7 +24,7 @@ class Message(models.Model):
 
 class StatusPost(models.Model):
     user = models.ForeignKey(
-        'user.CustomUser', on_delete=models.CASCADE, related_name='statuses'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='statuses'
     )
     caption = models.CharField(max_length=100, blank=True, null=True)
     image = models.ImageField(upload_to='status_images/', blank=True, null=True)

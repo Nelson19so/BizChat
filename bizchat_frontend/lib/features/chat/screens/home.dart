@@ -1,7 +1,6 @@
 import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/bottom_nav_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
-import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/features/chat/widget/chat_list_widget.dart';
 import 'package:bizchat_frontend/features/provider/provders.dart';
 import 'package:flutter/material.dart';
@@ -139,9 +138,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                           child: CircleAvatar(
                             radius: 26,
-                            backgroundImage: user?.profile.profilePicture != null
-                                ? NetworkImage('${user?.profile.profilePicture}')
-                                : const AssetImage('assets/images/demo/demo_user.png') as ImageProvider,
+                            backgroundImage: const AssetImage('assets/images/ph_user-light.png') as ImageProvider,
                           ),
                         ),
 
@@ -204,7 +201,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 final ImageProvider profileImage = (chatUser?.profilePicture != null && chatUser!.profilePicture!.isNotEmpty)
                     ? NetworkImage(chatUser.profilePicture!)
-                    : const AssetImage('assets/images/demo/demo_user.png');
+                    : const AssetImage('assets/images/ph_user-light.png');
 
                 return ChatListWidget(
                   isLoadingItem: chatRooms.isLoadingRooms,

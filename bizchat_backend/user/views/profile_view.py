@@ -4,12 +4,24 @@ from django.contrib.auth    import get_user_model
 from ..serializer           import UpdateProfileSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework         import status
+from django.db.models       import Prefetch
+from chat.models            import StatusPost
 
 
 User = get_user_model()
 
 
-user_api_only = (
+user_queryset = User.objects.select_related(
+    "profile",
+).prefetch_related(
+    Prefetch(
+        "statuses",
+        queryset=StatusPost.objects.only(
+            "id",
+            "posted_at",
+        )
+    )
+).only(
     "id",
     "first_name",
     "last_name",
@@ -20,19 +32,13 @@ user_api_only = (
     "profile",
     "profile__id",
     "profile__profile_picture",
-    "profile__verified",
     "profile__date_of_birth",
     "profile__address",
-    "address__zip_code",
+    "profile__zip_code",
     "profile__state",
     "profile__country",
     "profile__phone_number",
     "profile__created_at",
-
-    "statuses",
-    "statuses__id",
-    "statuses__count",
-    "statuses__latest_status_time",
 )
 
 class UserApiView(APIView):
@@ -46,13 +52,8 @@ class UserApiView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        user = User.objects.filter(
+        user = user_queryset.filter(
             id=request.user.id
-        ).select_related(
-            "profile",
-            "statuses",
-        ).only(
-            user_api_only
         ).first()
 
         serializer = UserSerializer(user)
@@ -92,13 +93,8 @@ class PublicProfileApiView(APIView):
     """Public profile view for user"""
 
     def get(self, request, user_id):
-        pub_user = User.objects.filter(
+        pub_user = user_queryset.filter(
             id=user_id
-        ).select_related(
-            "profile",
-            "statuses",
-        ).only(
-            user_api_only
         ).first()
 
         if not pub_user:
