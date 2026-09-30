@@ -40,10 +40,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final user = authState.user;
 
-    if (authState.isLoading || chatRooms.isLoadingRooms) {
-      return const ScreenLoader();
-    }
-
     return AppLayout(
       isHome: true,
       useBottomNav: true,
@@ -92,7 +88,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(width: 13,),
 
                     GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/accountDetails'),
+                      onTap: authState.isLoading == true
+                          ? null
+                          : () => Navigator.pushNamed(context,
+                                  '/accountDetails'),
                       child: Container(
                         height: 44,
                         width: 44,
@@ -193,9 +192,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               : Expanded(
             child: ListView.separated(
-              itemCount: chatRooms.rooms!.length,
+              itemCount: chatRooms.isLoadingRooms == false ? chatRooms.rooms!.length : 10,
               separatorBuilder: (context, index) => const SizedBox(height: 30,),
               itemBuilder: (context, index) {
+                if (chatRooms.isLoadingRooms) {
+                  return ChatListWidget(isLoadingItem: chatRooms.isLoadingRooms, userName: '', userProfilePic: null, userId: null,);
+                }
+
                 final room = chatRooms.rooms![index];
                 final chatUser = room.participant;
 
@@ -204,6 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     : const AssetImage('assets/images/demo/demo_user.png');
 
                 return ChatListWidget(
+                  isLoadingItem: chatRooms.isLoadingRooms,
                   userId: chatUser!.id,
                   userName: '${chatUser.firstName} ${chatUser.lastName}',
                   userLastMessage: "${room.lastMessage!.isNotEmpty

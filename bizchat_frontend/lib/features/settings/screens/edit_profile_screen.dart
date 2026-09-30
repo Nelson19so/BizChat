@@ -60,9 +60,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (next.success != null) {
 
         scaffholdmessage(
-            context: context,
-            message: '${next.success}',
-            type: ScaffHoldMessageType.successful
+          context: context,
+          message: '${next.success}',
+          type: ScaffHoldMessageType.successful
         );
       }
     });

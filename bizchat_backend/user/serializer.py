@@ -1,15 +1,16 @@
-from rest_framework import serializers
-from .models import CustomUser, UserProfile
+from rest_framework     import serializers
+from .models            import CustomUser, UserProfile
 from django.contrib.auth.password_validation import validate_password
-from django.db import IntegrityError, transaction
+from django.db          import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import authenticate, get_user_model
-from .utils import validate_name
-from datetime import date, timedelta
-from django.utils import timezone
+from .utils             import validate_name
+from datetime           import date, timedelta
+from django.utils       import timezone
 
 
 User = get_user_model()
+
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()

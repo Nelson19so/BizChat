@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MessageScreen extends StatefulWidget {
-  final int roomId;
+  final int? roomId;
   const MessageScreen({super.key, required this.roomId});
 
   @override
@@ -14,7 +14,7 @@ class _MessageScreenState extends State<MessageScreen> {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-        child: Text("Text Message Screen"),
+        child: Text("Text Message Screen ${widget.roomId}"),
       ),
     );
   }

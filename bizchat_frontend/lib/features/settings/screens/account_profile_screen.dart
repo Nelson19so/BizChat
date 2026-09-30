@@ -9,7 +9,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountProfileScreen extends ConsumerWidget {
-  const AccountProfileScreen({super.key});
+  final bool isPublicProfile ;
+
+  const AccountProfileScreen({
+    super.key,
+    this.isPublicProfile = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,14 +23,14 @@ class AccountProfileScreen extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider);
     final user = authState.user;
 
-    if (authState.isLoading) {
-      return const ScreenLoader();
-    }
+    // if (authState.isLoading) {
+    //   return const ScreenLoader();
+    // }
 
     String cleanValue(dynamic value) {
-      if (value == null) return '--';
+      if (value == null || value == "") return '---';
       final str = value.toString().trim();
-      if (str.isEmpty || str.toLowerCase() == 'null') return '--';
+      if (str.isEmpty || str.toLowerCase() == 'null') return '---';
       return str;
     }
 
@@ -76,8 +81,8 @@ class AccountProfileScreen extends ConsumerWidget {
                   onTap: () {
                     final ImageProvider targetImage;
 
-                    if (profilePic != null && profilePic!.contains('http')) {
-                      targetImage = NetworkImage(profilePic!);
+                    if (profilePic != null && profilePic.contains('http')) {
+                      targetImage = NetworkImage(profilePic);
                     } else {
                       targetImage = const AssetImage('assets/images/ph_user-light.png');
                     }

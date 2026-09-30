@@ -8,12 +8,16 @@ class ChatRoomsControllerState {
   final List<ChatRoomModel>? rooms;
   final SimpleUser? simpleUser;
   final String? error;
+  final String? createGetRoomError;
+  final int? roomId;
 
   ChatRoomsControllerState({
     required this.isLoadingRooms,
     required this.rooms,
     required this.error,
     required this.simpleUser,
+    required this.roomId,
+    required this.createGetRoomError
   });
 
   factory ChatRoomsControllerState.initial() {
@@ -22,6 +26,8 @@ class ChatRoomsControllerState {
       rooms: null,
       error: null,
       simpleUser: null,
+      roomId: null,
+      createGetRoomError: null,
     );
   }
 
@@ -30,12 +36,16 @@ class ChatRoomsControllerState {
     List<ChatRoomModel>? rooms,
     String? error,
     SimpleUser? simpleUser,
+    int? roomId,
+    String? createGetRoomError,
   }) {
     return ChatRoomsControllerState(
       isLoadingRooms: isLoadingRooms ?? this.isLoadingRooms,
       rooms: rooms ?? this.rooms,
       error: error ?? this.error,
       simpleUser: simpleUser ?? this.simpleUser,
+      roomId: roomId ?? this.roomId,
+      createGetRoomError: createGetRoomError ?? this.createGetRoomError,
     );
   }
 }
@@ -110,6 +120,29 @@ class ChatRoomsController extends StateNotifier<ChatRoomsControllerState> {
         isLoadingRooms: false,
         simpleUser: null,
         error: err.toString(),
+      );
+    }
+  }
+
+  Future<void> getOrCreateChatRoom(int userId) async {
+    try {
+      state = state.copyWith(
+        isLoadingRooms: true,
+        roomId: null,
+        createGetRoomError: null,
+      );
+
+      final responseData = await api.getOrCreateRoom(userId);
+
+      state = state.copyWith(
+        isLoadingRooms: false,
+        roomId: responseData,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        isLoadingRooms: false,
+        roomId: null,
+        createGetRoomError: error.toString(),
       );
     }
   }

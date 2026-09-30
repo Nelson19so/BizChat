@@ -256,8 +256,8 @@ class CreateOrGetRoomView(APIView):
         # Check if room already exist
         room = (
             ChatRoom.objects
-            .filter(participant=current_user)
-            .filter(participant=other_user)
+            .filter(participants=current_user)
+            .filter(participants=other_user)
             .first()
         )
 

@@ -50,4 +50,21 @@ class ChatApiService {
       throw ErrorHelper.getErrorMessage(error);
     }
   }
+
+  /// Get Or Create User Room
+  Future<int> getOrCreateRoom(int userId) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.getOrCreateUserRoom,
+        data: {
+          "user_id": userId,
+        }
+      );
+
+      final data = response.data["room_id"];
+      return data;
+    } on DioException catch(error) {
+      throw ErrorHelper.getErrorMessage(error);
+    }
+  }
 }

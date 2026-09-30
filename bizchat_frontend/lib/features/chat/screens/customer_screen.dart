@@ -50,7 +50,7 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
       _loaded = true;
 
       ref.read(authControllerProvider.notifier).getUser();
-      ref.read(chatRoomsControllerProvider.notifier).getUserChatRooms();
+      ref.read(chatRoomsControllerProvider.notifier).getUserChatListRooms();
     });
   }
 
@@ -88,10 +88,6 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final chatRooms = ref.watch(chatRoomsControllerProvider);
-
-    if (authState.isLoading || chatRooms.isLoadingRooms) {
-      return const ScreenLoader();
-    }
 
     return isAddingUserNo ?
       Scaffold(
@@ -305,9 +301,13 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
 
               : Expanded(
             child: ListView.separated(
-              itemCount: chatRooms.rooms!.length,
+              itemCount: chatRooms.isLoadingRooms == false ? chatRooms.rooms!.length : 10,
               separatorBuilder: (context, index) => const SizedBox(height: 30,),
               itemBuilder: (context, index) {
+                if (chatRooms.isLoadingRooms) {
+                  return ChatListWidget(isLoadingItem: chatRooms.isLoadingRooms, userName: '', userProfilePic: null, userId: null,);
+                }
+
                 final room = chatRooms.rooms![index];
                 final chatUser = room.participant;
 
@@ -316,12 +316,12 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
                     : const AssetImage('assets/images/demo/demo_user.png');
 
                 return ChatListWidget(
+                  isLoadingItem: chatRooms.isLoadingRooms,
                   userId: chatUser!.id,
                   userName: '${chatUser.firstName} ${chatUser.lastName}',
-                  userLastMessage: "${room.lastMessage!.isNotEmpty
-                      ? room.lastMessage
-                      : ""}",
+                  userLastMessage: room.lastMessage,
                   userProfilePic: profileImage,
+                  userLastMessageTimeOrDate: "${room.lastMessageTime}",
                 );
               },
             ),

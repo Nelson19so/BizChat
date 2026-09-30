@@ -1,14 +1,20 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/features/chat/screens/message_screen.dart';
+import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/settings/screens/account_profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChatListWidget extends StatelessWidget {
-  final int userId;
-  final String userName;
+import '../../../core/widget/scaffholdmessage.dart';
+
+class ChatListWidget extends ConsumerWidget {
+  final int? userId;
+  final String? userName;
   final String? userLastMessage;
   final String? userLastMessageTimeOrDate;
-  final ImageProvider userProfilePic;
+  final ImageProvider? userProfilePic;
   final int? unreadMessagesCount;
+  final bool? isLoadingItem;
 
   const ChatListWidget({
     super.key,
@@ -17,20 +23,38 @@ class ChatListWidget extends StatelessWidget {
     this.userLastMessageTimeOrDate,
     required this.userProfilePic,
     this.unreadMessagesCount,
-    required this.userId
+    required this.userId,
+    this.isLoadingItem,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () async {
+      onTap: isLoadingItem == true ? null : () async {
         // Create or get the room
+        await ref.read(chatRoomsControllerProvider.notifier)
+            .getOrCreateChatRoom(userId!);
+
+        if (!context.mounted) return;
+
+        final roomController = ref.read(chatRoomsControllerProvider);
+
         Navigator.push(
-          context, MaterialPageRoute(
-            builder: (context) => MessageScreen(roomId: userId)
+           context, MaterialPageRoute(
+           builder: (context) => MessageScreen(roomId: roomController.roomId)
           )
         );
+
+        if (roomController.createGetRoomError != null && roomController.createGetRoomError!.isNotEmpty) {
+          final controller = ref.read(chatRoomsControllerProvider);
+
+          scaffholdmessage(
+              context: context,
+              message: '${controller.createGetRoomError}',
+              type: ScaffHoldMessageType.failed
+          );
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -39,9 +63,21 @@ class ChatListWidget extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundImage: userProfilePic,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: isLoadingItem == false ? () => Navigator.push(
+                    context, MaterialPageRoute(
+                      builder: (context) => AccountProfileScreen(),
+                    )
+                  ) : null,
+                  child: CircleAvatar(
+                    radius: 26,
+                    backgroundImage: isLoadingItem != true
+                        ? userProfilePic
+                        :  const AssetImage(
+                        'assets/images/ph_user-light.png'
+                    ) as ImageProvider,
+                  ),
                 ),
 
                 const SizedBox(width: 12,),
@@ -50,27 +86,45 @@ class ChatListWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        userName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryBlack,
-                        ),
-                      ),
+                      isLoadingItem != true ?
+                        Text(
+                          userName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryBlack,
+                          ),
+                        ) : Container(
+                              height: 10,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.white70,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ),
 
-                      Text(
-                        userLastMessage ?? "--- No Message Yet ---",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryWhiteGrey,
+                      ?isLoadingItem == true ? const SizedBox(height: 10,) : null,
+
+                      isLoadingItem != true ?
+                        Text(
+                          userLastMessage != "" ? userLastMessage! : "--- No Message Yet ---",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryWhiteGrey,
+                          ),
+                        ) : Container(
+                          height: 10,
+                          width: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.white70,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
                         ),
-                      )
                     ],
                   ),
                 ),
@@ -84,7 +138,10 @@ class ChatListWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (userLastMessageTimeOrDate != null)
-                Text(userLastMessageTimeOrDate!, style: TextStyle(
+                Text(
+                  userLastMessageTimeOrDate != '' ?
+                  userLastMessageTimeOrDate! : "",
+                  style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.secondaryWhiteGrey,
