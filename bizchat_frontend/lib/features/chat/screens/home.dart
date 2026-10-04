@@ -2,7 +2,7 @@ import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/bottom_nav_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/features/chat/widget/chat_list_widget.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';

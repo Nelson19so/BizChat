@@ -1,6 +1,6 @@
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/features/chat/screens/message_screen.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:bizchat_frontend/features/settings/screens/account_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,11 +85,13 @@ class ChatListWidget extends ConsumerWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       isLoadingItem != true ?
                         Text(
                           userName!,
                           maxLines: 1,
+                          textAlign:TextAlign.center,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 18,
@@ -107,24 +109,25 @@ class ChatListWidget extends ConsumerWidget {
 
                       ?isLoadingItem == true ? const SizedBox(height: 10,) : null,
 
-                      isLoadingItem != true ?
-                        Text(
-                          userLastMessage != "" ? userLastMessage! : "--- No Message Yet ---",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryWhiteGrey,
+                      if (userLastMessage != null || userLastMessage != '')
+                        isLoadingItem != true ?
+                          Text(
+                            '$userLastMessage',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.secondaryWhiteGrey,
+                            ),
+                          ) : Container(
+                            height: 10,
+                            width: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.white70,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
                           ),
-                        ) : Container(
-                          height: 10,
-                          width: 150,
-                          decoration: BoxDecoration(
-                            color: Colors.white70,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -139,8 +142,7 @@ class ChatListWidget extends ConsumerWidget {
             children: [
               if (userLastMessageTimeOrDate != null)
                 Text(
-                  userLastMessageTimeOrDate != '' ?
-                  userLastMessageTimeOrDate! : "",
+                  userLastMessageTimeOrDate!,
                   style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

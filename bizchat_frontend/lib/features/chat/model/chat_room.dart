@@ -1,4 +1,4 @@
-import 'package:bizchat_frontend/features/chat/model/simpleuser.dart';
+import 'package:bizchat_frontend/features/chat/model/simple_user.dart';
 
 class ChatRoomModel {
   final int id;

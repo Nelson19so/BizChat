@@ -6,7 +6,7 @@ import 'package:bizchat_frontend/core/widget/full_screen_image_viewer.dart';
 import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/core/widget/show_dialog.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:bizchat_frontend/features/settings/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

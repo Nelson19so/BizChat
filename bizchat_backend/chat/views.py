@@ -55,7 +55,7 @@ class UserRoomsWithChatView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        chat_room_key = f"chat_room_user_{self.request.user.id}"
+        chat_room_key = f"user_chat_rooms_{self.request.user.id}"
 
         queryset = cache.get(chat_room_key)
 
@@ -197,13 +197,13 @@ class MessageListView(generics.ListAPIView):
             "room",
             "sender", 
             "text", 
-            "created_at"
+            "created_at",
 
             # Related sender fields
             "sender__id",
             "sender__first_name",
             "sender__last_name",
-            "sender__profile_id",
+            "sender__profile__id",
             "sender__profile__profile_picture"
         )
 
@@ -218,11 +218,18 @@ class StatusListView(APIView):
             "user", 
             "user__profile"
         ).only(
-            'id', 'caption', 
-            'image', 'video', 
-            'posted_at', 'user', 
-            "user__id", "user__first_name", 
-            "user__last_name", "user__profile__profile_picture"
+            'id', 
+            'caption', 
+            'image', 
+            'video', 
+            'posted_at', 
+
+            # User fields
+            'user', 
+            "user__id", 
+            "user__first_name", 
+            "user__last_name", 
+            "user__profile__profile_picture",
         )
 
         serializer = StatusPostSerializer(
@@ -230,7 +237,7 @@ class StatusListView(APIView):
             many=True
         )
 
-        return Response(serializer.data)  
+        return Response(serializer.data, status=status.HTTP_200_OK)  
 
 
 class CreateOrGetRoomView(APIView):
@@ -274,8 +281,6 @@ class CreateOrGetRoomView(APIView):
             {
                 "success": True,
                 "room_id": room.id,
-                "created_at": room.created_at,
             },
             status=status.HTTP_200_OK
         )
-        

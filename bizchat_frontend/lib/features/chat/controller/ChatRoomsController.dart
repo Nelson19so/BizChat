@@ -1,59 +1,11 @@
+import 'package:bizchat_frontend/features/chat/chat_state/chat_rooms_state.dart';
 import 'package:bizchat_frontend/features/chat/data/chatApiService.dart';
-import 'package:bizchat_frontend/features/chat/model/chatRoom.dart';
-import 'package:bizchat_frontend/features/chat/model/simpleuser.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
-class ChatRoomsControllerState {
-  final bool isLoadingRooms;
-  final List<ChatRoomModel>? rooms;
-  final SimpleUser? simpleUser;
-  final String? error;
-  final String? createGetRoomError;
-  final int? roomId;
-
-  ChatRoomsControllerState({
-    required this.isLoadingRooms,
-    required this.rooms,
-    required this.error,
-    required this.simpleUser,
-    required this.roomId,
-    required this.createGetRoomError
-  });
-
-  factory ChatRoomsControllerState.initial() {
-    return ChatRoomsControllerState(
-      isLoadingRooms: false,
-      rooms: null,
-      error: null,
-      simpleUser: null,
-      roomId: null,
-      createGetRoomError: null,
-    );
-  }
-
-  ChatRoomsControllerState copyWith({
-    bool? isLoadingRooms,
-    List<ChatRoomModel>? rooms,
-    String? error,
-    SimpleUser? simpleUser,
-    int? roomId,
-    String? createGetRoomError,
-  }) {
-    return ChatRoomsControllerState(
-      isLoadingRooms: isLoadingRooms ?? this.isLoadingRooms,
-      rooms: rooms ?? this.rooms,
-      error: error ?? this.error,
-      simpleUser: simpleUser ?? this.simpleUser,
-      roomId: roomId ?? this.roomId,
-      createGetRoomError: createGetRoomError ?? this.createGetRoomError,
-    );
-  }
-}
-
-class ChatRoomsController extends StateNotifier<ChatRoomsControllerState> {
+class ChatRoomsController extends StateNotifier<ChatRoomsState> {
   final ChatApiService api;
 
-  ChatRoomsController(this.api) : super(ChatRoomsControllerState.initial());
+  ChatRoomsController(this.api) : super(ChatRoomsState.initial());
 
   Future<void> getUserChatRooms() async {
     try {
@@ -143,6 +95,30 @@ class ChatRoomsController extends StateNotifier<ChatRoomsControllerState> {
         isLoadingRooms: false,
         roomId: null,
         createGetRoomError: error.toString(),
+      );
+    }
+  }
+
+  /// Getting all chat messages
+  Future<void> getUserChatRoomMessages(int roomId) async {
+    try {
+      state = state.copyWith(
+        isLoadingMessages: true,
+        roomMessages: null,
+        error: null,
+      );
+
+      final response = await api.getUserChatRoomMessageList(roomId);
+
+      state = state.copyWith(
+        isLoadingMessages: false,
+        roomMessages: response,
+      );
+    } catch (err) {
+      state = state.copyWith(
+        isLoadingMessages: false,
+        roomMessages: null,
+        error: err.toString(),
       );
     }
   }

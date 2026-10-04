@@ -49,23 +49,21 @@ class RoomListSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = SimpleUserSerializer(read_only=True)
-    room_dm = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ["id", "room", "room_dm", "sender", "text", "created_at"]
+        fields = ["id", "room", "sender", "text", "created_at"]
 
-    def get_room_dm(self, obj):
+    def get_sender(self, obj):
         request = self.context.get("request")
         if not request or not request.user:
             return None
 
-        room = obj.room
-        if not room:
+        sender = obj.sender
+        if not sender:
             return None
 
-        all_participants = room.participants.all()
+        all_participants = sender.participants.all()
 
         other_user = next((u for u in all_participants if u.id != request.user.id), None)
 
@@ -77,13 +75,7 @@ class StatusPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StatusPost
-        fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']
-
-
-# class UserSearchFeedSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = ChatRoom        
+        fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']      
 
 
 class CreateRoomSerializer(serializers.Serializer):

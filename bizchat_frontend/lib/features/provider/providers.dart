@@ -1,6 +1,7 @@
 import 'package:bizchat_frontend/core/network/dio_client.dart';
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/features/auth/data/user_api_service.dart';
+import 'package:bizchat_frontend/features/chat/chat_state/chat_rooms_state.dart';
 import 'package:bizchat_frontend/features/chat/controller/ChatRoomsController.dart';
 import 'package:bizchat_frontend/features/chat/data/chatApiService.dart';
 import 'package:bizchat_frontend/features/settings/controller/profile_controller.dart';
@@ -46,7 +47,7 @@ final chatRoomsApiServiceProvider = Provider<ChatApiService>((ref) {
   return ChatApiService(dio);
 });
 
-final chatRoomsControllerProvider = StateNotifierProvider<ChatRoomsController, ChatRoomsControllerState>((ref) {
+final chatRoomsControllerProvider = StateNotifierProvider<ChatRoomsController, ChatRoomsState>((ref) {
   final api = ref.watch(chatRoomsApiServiceProvider);
   return ChatRoomsController(api);
 });
