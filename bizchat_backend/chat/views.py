@@ -29,33 +29,50 @@ participant_prefetch = Prefetch(
 
 messages_prefetch = Prefetch(
     "messages",
-    queryset=Message.objects.order_by('-created_at')
+    queryset=Message.objects.only(
+        "id",
+        "text",
+        "created_at"
+    ).order_by('-created_at')
 )
 
 
 class UserRoomsView(generics.ListAPIView):
+    '''
+    User Chat Room with Cache and database optimization
+    This View filters rooms where user is active
+    '''
     serializer_class = RoomListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ChatRoom.objects.filter(
-            participants=self.request.user
-        ).prefetch_related(
-            participant_prefetch, 
-            messages_prefetch
-        ).distinct()
+        chat_room_key = f"chat_room_user_{self.request.user.id}"
+
+        queryset = cache.get(chat_room_key)
+
+        if not queryset:
+            queryset = ChatRoom.objects.filter(
+                participants=self.request.user
+            ).prefetch_related(
+                participant_prefetch, 
+                messages_prefetch
+            ).distinct()
+
+            cache.set(chat_room_key, queryset, 55)
+
+        return queryset
 
 
-'''
-User Chat Room with Cache and database optimization
-This View filters user rooms with Chat a Message
-'''
 class UserRoomsWithChatView(generics.ListAPIView):
+    '''
+    User Chat Room with Cache and database optimization
+    This View filters user rooms with Chat a Message
+    '''
     serializer_class = RoomListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        chat_room_key = f"user_chat_rooms_{self.request.user.id}"
+        chat_room_key = f"message_chat_room_user_{self.request.user.id}"
 
         queryset = cache.get(chat_room_key)
 
@@ -64,8 +81,10 @@ class UserRoomsWithChatView(generics.ListAPIView):
                 participants=self.request.user,
                 messages__sender=self.request.user
             ).prefetch_related(
-                participant_prefetch, 
+                participant_prefetch,
                 messages_prefetch
+            ).order_by(
+                "-messages__created_at"
             ).distinct()
 
             # Set Chat room for user
@@ -144,7 +163,6 @@ class SearchUserByPhoneNumberApiView(APIView):
         ).select_related(
             "profile",
         ).only(
-            "profile",
             "profile__id",
             "profile__phone_number",
             "profile__profile_picture",
