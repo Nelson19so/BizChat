@@ -9,14 +9,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.shortcuts   import get_object_or_404
-from user.models        import CustomUser
+from user.models        import CustomUser, UserProfile
 from django.db.models   import Q, Prefetch
 from django.core.cache  import cache
+from django.db import transaction
 
 
 User = get_user_model()
 
 
+# Room Participant (user) Prefetch 
 participant_prefetch = Prefetch(
     'participants',
     queryset=User.objects.only(
@@ -27,6 +29,7 @@ participant_prefetch = Prefetch(
     )
 )
 
+# Message Prefetch
 messages_prefetch = Prefetch(
     "messages",
     queryset=Message.objects.only(
@@ -146,37 +149,51 @@ class SearchUserByPhoneNumberApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        search_input = request.query_params.get("phone_number")
+        with transaction.atomic:
+            search_input = request.query_params.get("phone_number")
 
-        if not search_input or not search_input.strip():
-            return Response(
-                {"details": "Phone Number parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST
+            if not search_input or not search_input.strip():
+                return Response(
+                    {"details": "Phone Number parameter is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            phone_number = search_input.strip()
+
+            is_authenticated_user = UserProfile.objects.filter(
+                user=request.user,
+                phone_number=phone_number
+            ).values_list(
+                "phone_number", flat=True
             )
 
-        phone_number = search_input.strip()
+            if is_authenticated_user.exists():
+                return Response(
+                    {"details": "You cannot add yourself"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        user_profile = User.objects.filter(
-            profile__phone_number=phone_number
-        ).exclude(
-            id=request.user.id
-        ).select_related(
-            "profile",
-        ).only(
-            "profile__id",
-            "profile__phone_number",
-            "profile__profile_picture",
-        ).distinct().first()
+            user_profile = User.objects.filter(
+                profile__phone_number=phone_number
+            ).exclude(
+                id=request.user.id
+            ).select_related(
+                "profile",
+            ).only(
+                "profile__id",
+                "profile__phone_number",
+                "profile__profile_picture",
+            ).distinct().first()
 
-        if not user_profile:
-            return Response(
-                {"details": "No user was found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            if not user_profile:
+                return Response(
+                    {"details": "No user was found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-        serializer = SimpleUserSerializer(user_profile)
+            serializer = SimpleUserSerializer(user_profile)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MessageListView(generics.ListAPIView):

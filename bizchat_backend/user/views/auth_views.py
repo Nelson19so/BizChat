@@ -87,11 +87,13 @@ class LogoutUserApiView(APIView):
 
             token.blacklist()
             return Response(
-                {"message": "Successfully logged out.", 'success': True,}, status=status.HTTP_205_RESET_CONTENT
+                {"message": "Successfully logged out.", 'success': True,}, 
+                status=status.HTTP_205_RESET_CONTENT
             )
         except Exception:
             return Response(
-                {"message": "Invalid token.", "success": False}, status=status.HTTP_400_BAD_REQUEST
+                {"message": "Invalid token.", "success": False}, 
+                status=status.HTTP_400_BAD_REQUEST
             )    
 
 

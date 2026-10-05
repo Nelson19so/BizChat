@@ -35,7 +35,10 @@ class SettingsScreen extends ConsumerWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 17),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 17,
+                ),
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: GestureDetector(
@@ -79,7 +82,7 @@ class SettingsScreen extends ConsumerWidget {
                                 '${user?.firstName.toCapitalized()}',
                                 style: TextStyle(
                                   fontSize: 20,
-                                 fontWeight: FontWeight.bold
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -91,22 +94,28 @@ class SettingsScreen extends ConsumerWidget {
                                 _settingsList(
                                   title: 'Account Details',
                                   icon: 'assets/svgs/profile-circle.svg',
-                                  onClick: () => Navigator.of(context).pushNamed('/accountDetails'),
+                                  onClick: () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/accountDetails'),
                                 ),
 
                                 _settingsList(
                                   title: 'Settings',
                                   icon: 'assets/svgs/setting-2.svg',
-                                  onClick: () => Navigator.of(context).pushNamed('/notificationSettings'),
+                                  onClick: () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/notificationSettings'),
                                 ),
 
                                 _settingsList(
                                   title: 'Contact Us',
                                   icon: 'assets/svgs/sms-notification.svg',
-                                  onClick: () => Navigator.of(context).pushNamed('/contactUs'),
-                                )
+                                  onClick: () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/contactUs'),
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -118,26 +127,30 @@ class SettingsScreen extends ConsumerWidget {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () async {
-                            await ref.read(authControllerProvider.notifier).logout();
+                            await ref
+                                .read(authControllerProvider.notifier)
+                                .logout();
 
                             final state = ref.read(authControllerProvider);
 
                             if (state.error == null) {
                               scaffholdmessage(
                                 context: context,
-                                message: state.success ?? 'Logged out successfully',
+                                message:
+                                    state.success ?? 'Logged out successfully',
                                 type: ScaffHoldMessageType.successful,
                               );
 
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
                                 '/login',
-                                    (route) => false,
+                                (route) => false,
                               );
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor, // Noticeable accent color
+                            backgroundColor: AppColors
+                                .primaryColor, // Noticeable accent color
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -147,13 +160,13 @@ class SettingsScreen extends ConsumerWidget {
                             'Logout',
                             style: TextStyle(
                               fontSize: 17,
-                              fontWeight: FontWeight.bold
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 10,),
+                      const SizedBox(height: 10),
 
                       SizedBox(
                         width: double.infinity,
@@ -167,28 +180,33 @@ class SettingsScreen extends ConsumerWidget {
                             );
 
                             if (confirmed == true) {
-                              await ref.read(authControllerProvider.notifier).deleteUser();
+                              await ref
+                                  .read(authControllerProvider.notifier)
+                                  .deleteUser();
 
                               final state = ref.read(authControllerProvider);
 
                               if (state.error == null) {
                                 scaffholdmessage(
                                   context: context,
-                                  message: state.success ?? 'Account deleted successfully.',
+                                  message:
+                                      state.success ??
+                                      'Account deleted successfully.',
                                   type: ScaffHoldMessageType.successful,
                                 );
 
                                 Navigator.pushNamedAndRemoveUntil(
                                   context,
                                   '/register',
-                                      (route) => false,
+                                  (route) => false,
                                 );
                               }
                             }
                           },
                           style: ElevatedButton.styleFrom(
                             elevation: 0,
-                            backgroundColor: AppColors.secondaryWhite, // Noticeable accent color
+                            backgroundColor: AppColors
+                                .secondaryWhite, // Noticeable accent color
                             foregroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -198,7 +216,7 @@ class SettingsScreen extends ConsumerWidget {
                             'Delete Account',
                             style: TextStyle(
                               fontSize: 17,
-                              fontWeight: FontWeight.bold
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -248,7 +266,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget _settingsList({
     required String title,
     required String icon,
-    required VoidCallback onClick
+    required VoidCallback onClick,
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -257,26 +275,20 @@ class SettingsScreen extends ConsumerWidget {
         padding: EdgeInsets.symmetric(vertical: 21),
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(
-              color: AppColors.secondaryGray4,
-              width: 1.0,
-            ),
-          )
+            bottom: BorderSide(color: AppColors.secondaryGray4, width: 1.0),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SvgPicture.asset(icon, height: 20, width: 20,),
+            SvgPicture.asset(icon, height: 20, width: 20),
 
-            const SizedBox(width: 16,),
+            const SizedBox(width: 16),
 
             Text(
               title,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ],
         ),

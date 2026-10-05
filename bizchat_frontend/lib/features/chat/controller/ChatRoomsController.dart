@@ -124,7 +124,7 @@ class ChatRoomsController extends StateNotifier<ChatRoomsState> {
   }
 
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith(error: null, createGetRoomError: null);
   }
 
   void clearPhoneSearch() {

@@ -29,6 +29,12 @@ class ChatListWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final avatar = isLoadingItem != true
+        ? userProfilePic
+        :  const AssetImage(
+        'assets/images/ph_user-light.png'
+    ) as ImageProvider;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: isLoadingItem == true ? null : () async {
@@ -42,7 +48,11 @@ class ChatListWidget extends ConsumerWidget {
 
         Navigator.push(
            context, MaterialPageRoute(
-           builder: (context) => MessageScreen(roomId: roomController.roomId)
+           builder: (context) => MessageScreen(
+             roomId: roomController.roomId,
+             userProfilePic: avatar as ImageProvider,
+             userName: "$userName",
+           )
           )
         );
 
@@ -72,11 +82,7 @@ class ChatListWidget extends ConsumerWidget {
                   ) : null,
                   child: CircleAvatar(
                     radius: 26,
-                    backgroundImage: isLoadingItem != true
-                        ? userProfilePic
-                        :  const AssetImage(
-                        'assets/images/ph_user-light.png'
-                    ) as ImageProvider,
+                    backgroundImage: avatar
                   ),
                 ),
 
@@ -100,7 +106,7 @@ class ChatListWidget extends ConsumerWidget {
                           ),
                         ) : Container(
                               height: 10,
-                              width: 150,
+                              width: 75,
                               decoration: BoxDecoration(
                                 color: Colors.white70,
                                 borderRadius: BorderRadius.circular(50),
@@ -142,7 +148,7 @@ class ChatListWidget extends ConsumerWidget {
             children: [
               if (userLastMessageTimeOrDate != null)
                 Text(
-                  userLastMessageTimeOrDate!,
+                  "$userLastMessageTimeOrDate",
                   style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
