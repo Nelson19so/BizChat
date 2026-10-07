@@ -1,18 +1,21 @@
-from rest_framework import generics
-from .models        import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
+from rest_framework         import generics
+from rest_framework.views   import APIView, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from django.contrib.auth import get_user_model
+from django.shortcuts    import get_object_or_404
+from django.db.models    import Q, Prefetch
+from django.core.cache   import cache
+from django.db           import transaction
+
+from .models import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers   import (
     RoomListSerializer, MessageSerializer, StatusPostSerializer, 
     CreateRoomSerializer, SimpleUserSerializer
 )
-from rest_framework.views import APIView, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.contrib.auth import get_user_model
-from django.shortcuts   import get_object_or_404
-from user.models        import CustomUser, UserProfile
-from django.db.models   import Q, Prefetch
-from django.core.cache  import cache
-from django.db import transaction
+
+from user.models import CustomUser, UserProfile
 
 
 User = get_user_model()
@@ -38,6 +41,16 @@ messages_prefetch = Prefetch(
         "created_at"
     ).order_by('-created_at')
 )
+
+
+# Get or create user search history for user search
+def get_or_create_user_search(user_query):
+    if user_query:
+        user_search = UserChatRoomSearchHistory.objects.get_or_create(
+            user=user_query
+        )
+
+        return user_search
 
 
 class UserRoomsView(generics.ListAPIView):
@@ -190,6 +203,9 @@ class SearchUserByPhoneNumberApiView(APIView):
                     {"details": "No user was found"},
                     status=status.HTTP_404_NOT_FOUND
                 )
+
+            # Get or create user search history
+            get_or_create_user_search(user_query=user_profile)
 
             serializer = SimpleUserSerializer(user_profile)
 

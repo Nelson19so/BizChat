@@ -41,6 +41,7 @@ user_queryset = User.objects.select_related(
     "profile__created_at",
 )
 
+
 class UserApiView(APIView):
     """User profile details"""
     permission_classes = [IsAuthenticated]
