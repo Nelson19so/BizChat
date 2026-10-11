@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from .models import Message
+from datetime import timezone, datetime
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -25,7 +25,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data["message"]
-        user_id = self.scope.get("user_id")
+        user = self.scope.get("user_id")
+
+        user_id = user.id
+        now_iso = datetime.now(timezone.utc).isoformat()
 
         await self.save_message(user_id, message)
 
@@ -35,6 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "type": "chat_message",
                 "message": message,
                 "user_id": user_id,
+                "timestamp": now_iso
             }
         )
 
@@ -43,8 +47,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def save_message(self, user_id, message):
+        from .models import Message, ChatRoom
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        if not user_id:
+            raise ValueError("Attempt to save message with no  user_id provided")
+
+        user_instance = User.objects.get(id=user_id)
+        room_instance = ChatRoom.objects.get(
+            id=self.room_id,
+        )
+        
         return Message.objects.create(
-            room_id=self.room_id,
-            sender_id=user_id,
+            room=room_instance,
+            sender=user_instance,
             text=message
         )

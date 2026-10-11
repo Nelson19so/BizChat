@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 User = get_user_model()
 
+
 # refresh token
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -15,6 +16,7 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
 
 class UserRegistrationView(generics.CreateAPIView):
     """API endpoint for user registration."""

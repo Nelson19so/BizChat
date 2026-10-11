@@ -31,12 +31,14 @@ class AccountProfileScreen extends ConsumerWidget {
     }
 
     final profilePic = user?.profile.profilePicture;
+    final dateOfBirth = user?.profile.dateOfBirth;
 
     final fullName = cleanValue(
       '${user?.firstName.toCapitalized()} ${user?.lastName.toCapitalized()}',
     );
+
+    final userDateOfBirth = '${dateOfBirth?.day} / ${dateOfBirth?.month} / ${dateOfBirth?.year}';
     final country = cleanValue(user?.profile.country);
-    final dateOfBirth = cleanValue(user?.profile.dateOfBirth);
     final phone = cleanValue(user?.profile.phoneNumber);
     final email = cleanValue(user?.email);
 
@@ -123,7 +125,7 @@ class AccountProfileScreen extends ConsumerWidget {
                 _profileDetails(
                   title: 'Birthday',
                   type: 'date',
-                  subTitle: dateOfBirth,
+                  subTitle: userDateOfBirth,
                 ),
 
                 _profileDetails(

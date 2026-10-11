@@ -51,25 +51,11 @@ class RoomListSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+    sender = SimpleUserSerializer(read_only=True)
 
     class Meta:
         model = Message
         fields = ["id", "room", "sender", "text", "created_at"]
-
-    def get_sender(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user:
-            return None
-
-        sender = obj.sender
-        if not sender:
-            return None
-
-        all_participants = sender.participants.all()
-
-        other_user = next((u for u in all_participants if u.id != request.user.id), None)
-
-        return SimpleUserSerializer(other_user, context=self.context).data if other_user else None
 
 
 class StatusPostSerializer(serializers.ModelSerializer):

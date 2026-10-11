@@ -1,17 +1,28 @@
+import 'dart:convert';
+
+import 'package:bizchat_frontend/core/helper/get_time_ago_helper.dart';
+import 'package:bizchat_frontend/core/network/api_routes.dart';
+import 'package:bizchat_frontend/core/storage/token_storage.dart';
+import 'package:bizchat_frontend/core/theme/theme.dart';
+import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MessageScreen extends ConsumerStatefulWidget {
   final int? roomId;
+  final int? userId;
   final ImageProvider userProfilePic;
   final String userName;
+
   const MessageScreen({
     super.key,
     required this.roomId,
     required this.userProfilePic,
     required this.userName,
+    required this.userId,
   });
 
   @override
@@ -19,8 +30,77 @@ class MessageScreen extends ConsumerStatefulWidget {
 }
 
 class _MessageScreenState extends ConsumerState<MessageScreen> {
+  final _messageController = TextEditingController();
+
+  bool _canShowSendButton = false;
+
+  late WebSocketChannel _channel;
+
+  final ScrollController _scrollController = ScrollController();
+  final List<Map<String, dynamic>> _messages = [];
+
+  void _handleMessageControllerChange() {
+    if (_messageController.text.isNotEmpty) {
+      setState(() {
+        _canShowSendButton = true;
+      });
+    } else {
+      setState(() {
+        _canShowSendButton = false;
+      });
+    }
+  }
+
+  void _connectWebSocket() async {
+    String? token = await ref.read(tokenStorageProvider).getAccessToken();
+
+    final url = Uri.parse(
+      '${ApiRoutes.webSocketBaseUrl}${ApiRoutes.channelMessage}${widget.roomId}/?token=$token'
+    );
+    _channel = WebSocketChannel.connect(url);
+
+    _channel.stream.listen(
+        (data) {
+          final decodeData = jsonDecode(data);
+
+          setState(() {
+            _messages.add({
+              "message": decodeData['message'],
+              "sender_id": decodeData['user_id'],
+              "timestamp": decodeData['timestamp'],
+            });
+          });
+
+          _scrollToBottom();
+        },
+      onError: (error) {
+        if (!mounted) return;
+
+        scaffholdmessage(
+          context: context,
+          message: error,
+          type: ScaffHoldMessageType.failed,
+        );
+      }
+    );
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.trim().isEmpty) return;
+
+    final payload = {
+      "message": _messageController.text.trim(),
+    };
+
+    _channel.sink.add(jsonEncode(payload));
+    _messageController.clear();
+  }
+
   @override
   void initState() {
+    super.initState();
+    _messageController.addListener(_handleMessageControllerChange);
+
     Future.microtask(() {
       final roomId = widget.roomId;
 
@@ -29,24 +109,99 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
           .getUserChatRoomMessages(roomId!);
     });
 
-    super.initState();
+    _connectWebSocket();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(microseconds: 300),
+          curve: Curves.easeInOut
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _channel.sink.close();
+
+    _messageController.dispose();
+    _scrollController.dispose();
+    
+    _messageController.removeListener(_handleMessageControllerChange);
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatRoomMessages = ref.watch(chatRoomsControllerProvider);
+    final historicalMessages = ref.watch(chatRoomsControllerProvider).roomMessages;
+
+    final List<Map<String, dynamic>> allMessages = [
+      ...?historicalMessages?.map((msg) => {
+        "message": msg.text,
+        "sender_id": msg.sender?.id,
+        "timestamp": msg.createdAt,
+      }),
+      ..._messages,
+    ];
+
+    // final List<Map<String, dynamic>> dummyMessages = [
+    //   {
+    //     "sender_id": 4,
+    //     "message": "Hey!",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 11,
+    //     "message": "Hello! How are you?",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 4,
+    //     "message": "I'm doing good and you?",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 11,
+    //     "message": "I am Okay also thank you",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 4,
+    //     "message": "How was yesterdays party at Jeremy house",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 11,
+    //     "message": "It was fine, where were you at the party yersterday?",
+    //     "timestamp": "09:24 AM"
+    //   },
+    //   {
+    //     "sender_id": 4,
+    //     "message": "I wasn't feeling so good at home",
+    //     "timestamp": "09:24 AM"
+    //   }
+    // ];
+    
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 12,
-        elevation: 1,
+        elevation: 0.0,
+        scrolledUnderElevation: 0.0,
+        shadowColor: Color(0xFFEEFAF8).withOpacity(0.5),
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                ref.read(chatRoomsControllerProvider.notifier).getUserChatRooms();
+                Navigator.pop(context);
+              },
               icon: SvgPicture.asset(
                 'assets/svgs/Back.svg',
                 color: Colors.black,
@@ -58,18 +213,216 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 17,
+                  radius: 25,
                   backgroundImage: widget.userProfilePic,
                 ),
 
                 const SizedBox(width: 10),
 
-                Text(widget.userName, style: TextStyle(fontSize: 15)),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.userName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                      )
+                    ),
+
+                    Text(
+                      'Active now',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF797C7B),
+                      )
+                    ),
+                  ],
+                )
               ],
             ),
           ],
         ),
       ),
+
+      body: Column(
+        children: [
+          const SizedBox(height: 25,),
+
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: ListView.builder(
+                controller: _scrollController,
+                  itemCount: allMessages.length,
+                  itemBuilder: (context, index) {
+                    final msg = allMessages[index];
+
+                    final userId = ref.watch(authControllerProvider).user?.id;
+                    final isMe = msg['sender_id'] == userId;
+
+                    bool isNow(DateTime date) {
+                      final now = DateTime.now();
+                      return date.year == now.year &&
+                          date.month == now.month &&
+                          date.day == now.day;
+                    }
+
+                    // final isMe = msg?.sender?.id == userId;
+
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        padding: EdgeInsets.only(bottom: 20),
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.75
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (isMe == false)
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 17,
+                                    backgroundImage: widget.userProfilePic,
+                                  ),
+
+                                  const SizedBox(width: 10),
+
+                                  Text(
+                                      widget.userName,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      )
+                                  ),
+                                ],
+                              ),
+
+                            IntrinsicWidth(
+                              child: Padding(
+                                  padding: EdgeInsetsGeometry.only(left: isMe ? 0 : 50, top: isMe ? 0 : 12, bottom: 0),
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+                                          decoration: BoxDecoration(
+                                              color: isMe ? AppColors.primaryColor2 : Color(0xFFE9F3F3),
+                                              borderRadius: BorderRadius.only(
+                                                  topLeft: isMe ? Radius.circular(20) : Radius.zero,
+                                                  topRight: isMe ? Radius.zero : Radius.circular(20),
+                                                  bottomLeft: Radius.circular(20),
+                                                  bottomRight: Radius.circular(20)
+                                              )
+                                          ),
+                                          child: Text(
+                                            "${msg['message']}",
+                                            // "${msg?.text}",
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: isMe ? Colors.white : Colors.black
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 8,),
+
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            getTimeAgo(msg['timestamp']),
+                                            // "${msg?.createdAt}",
+                                            textAlign: TextAlign.end,
+                                            style: TextStyle(
+                                                color: Color(0xff797C7B),
+                                                fontSize: 10
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              ),
+                            )
+                          ],
+                        )
+                      )
+                    );
+                  },
+              ),
+            ),
+          ),
+
+          Container(
+            height: 70,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Color(0xFFDADADA),
+                )
+              )
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                  },
+                  icon: SvgPicture.asset('assets/svgs/clipattachment.svg')
+                ),
+
+                const SizedBox(width: 10,),
+                
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 13
+                    ),
+                    decoration: InputDecoration(
+                        hintText: 'Write your message',
+                        hintStyle: TextStyle(
+                          color: Color(0xFF797C7B),
+                          fontSize: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none
+                        ),
+                      filled: true,
+                      fillColor: Color(0xFFE9F3F3),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 15,),
+
+                if (_canShowSendButton)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor2,
+                      shape: BoxShape.circle,
+                    ),
+                    child:
+                    IconButton(
+                      onPressed: _sendMessage,
+                      icon: SvgPicture.asset('assets/svgs/Send.svg'),
+                    ),
+                  )
+              ],
+            ),
+          )
+        ],
+      )
 
       // body: SafeArea(
       //   child: ListView.separated(

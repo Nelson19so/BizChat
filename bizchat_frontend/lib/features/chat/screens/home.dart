@@ -183,16 +183,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(height: 24),
 
           (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
-              ? const Expanded(
-                  child: Center(
-                    child: Text(
-                      'No chats yet',
-                      style: TextStyle(
-                        color: AppColors.secondaryBlack2,
-                        fontSize: 16,
+              ? Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset('assets/images/jam_messages-alt-f.png'),
+
+                      const Center(
+                        child: Text(
+                          'No Message found yet',
+                          style: TextStyle(
+                            color: AppColors.secondaryWhiteGrey,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    ],
+                  )
                 )
               : Expanded(
                   child: ListView.separated(
@@ -200,7 +208,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ? chatRooms.rooms!.length
                         : 10,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 30),
+                        const Divider(height: 12, thickness: 0.5, indent: 80, color: Colors.transparent,),
                     itemBuilder: (context, index) {
                       if (chatRooms.isLoadingRooms) {
                         return ChatListWidget(

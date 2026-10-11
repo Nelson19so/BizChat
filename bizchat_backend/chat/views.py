@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 from django.shortcuts    import get_object_or_404
 from django.db.models    import Q, Prefetch
 from django.core.cache   import cache
-from django.db           import transaction
 
 from .models import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers   import (
@@ -44,10 +43,10 @@ messages_prefetch = Prefetch(
 
 
 # Get or create user search history for user search
-def get_or_create_user_search(user_query):
-    if user_query:
+def get_or_create_user_search(user_id):
+    if user_id:
         user_search = UserChatRoomSearchHistory.objects.get_or_create(
-            user=user_query
+            user__id=user_id
         )
 
         return user_search
@@ -89,18 +88,16 @@ class UserRoomsWithChatView(generics.ListAPIView):
 
     def get_queryset(self):
         chat_room_key = f"message_chat_room_user_{self.request.user.id}"
+        user = self.request.user.id,
 
         queryset = cache.get(chat_room_key)
 
         if not queryset:
             queryset = ChatRoom.objects.filter(
-                participants=self.request.user,
-                messages__sender=self.request.user
+                participants=user,
             ).prefetch_related(
                 participant_prefetch,
                 messages_prefetch
-            ).order_by(
-                "-messages__created_at"
             ).distinct()
 
             # Set Chat room for user
@@ -162,54 +159,54 @@ class SearchUserByPhoneNumberApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        with transaction.atomic:
-            search_input = request.query_params.get("phone_number")
+        search_input = request.query_params.get("phone_number")
 
-            if not search_input or not search_input.strip():
-                return Response(
-                    {"details": "Phone Number parameter is required"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            phone_number = search_input.strip()
-
-            is_authenticated_user = UserProfile.objects.filter(
-                user=request.user,
-                phone_number=phone_number
-            ).values_list(
-                "phone_number", flat=True
+        if not search_input or not search_input.strip():
+            return Response(
+                {"details": "Phone Number parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-            if is_authenticated_user.exists():
-                return Response(
-                    {"details": "You cannot add yourself"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        phone_number = search_input.strip()
 
-            user_profile = User.objects.filter(
-                profile__phone_number=phone_number
-            ).exclude(
-                id=request.user.id
-            ).select_related(
-                "profile",
-            ).only(
-                "profile__id",
-                "profile__phone_number",
-                "profile__profile_picture",
-            ).distinct().first()
+        is_authenticated_user = UserProfile.objects.filter(
+            user=request.user,
+            phone_number=phone_number
+        ).values_list(
+            "phone_number", flat=True
+        )
 
-            if not user_profile:
-                return Response(
-                    {"details": "No user was found"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+        if is_authenticated_user.exists():
+            return Response(
+                {"details": "You cannot add yourself"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-            # Get or create user search history
-            get_or_create_user_search(user_query=user_profile)
+        user_profile = User.objects.filter(
+            profile__phone_number=phone_number
+        ).exclude(
+            id=request.user.id
+        ).select_related(
+            "profile",
+        ).only(
+            "id",
+            "profile__id",
+            "profile__phone_number",
+            "profile__profile_picture",
+        ).distinct().first()
 
-            serializer = SimpleUserSerializer(user_profile)
+        if not user_profile:
+            return Response(
+                {"details": "No user was found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        # Get or create user search history
+        get_or_create_user_search(user_profile.id)
+
+        serializer = SimpleUserSerializer(user_profile)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MessageListView(generics.ListAPIView):
@@ -236,7 +233,9 @@ class MessageListView(generics.ListAPIView):
         ).prefetch_related(
             Prefetch(
                 "room__participants",
-                queryset=User.objects.select_related("profile").only(
+                queryset=User.objects.select_related(
+                    "profile"
+                ).only(
                     "id", 
                     "first_name", 
                     "last_name", 
@@ -303,7 +302,6 @@ class CreateOrGetRoomView(APIView):
         serializer.is_valid(raise_exception=True)
 
         other_user_id = serializer.validated_data['user_id']
-
         current_user = request.user
 
         other_user = get_object_or_404(

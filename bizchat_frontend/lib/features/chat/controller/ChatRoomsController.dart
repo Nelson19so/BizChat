@@ -79,7 +79,7 @@ class ChatRoomsController extends StateNotifier<ChatRoomsState> {
   Future<void> getOrCreateChatRoom(int userId) async {
     try {
       state = state.copyWith(
-        isLoadingRooms: true,
+        isLoadingMessages: true,
         roomId: null,
         createGetRoomError: null,
       );
@@ -87,12 +87,12 @@ class ChatRoomsController extends StateNotifier<ChatRoomsState> {
       final responseData = await api.getOrCreateRoom(userId);
 
       state = state.copyWith(
-        isLoadingRooms: false,
+        isLoadingMessages: false,
         roomId: responseData,
       );
     } catch (error) {
       state = state.copyWith(
-        isLoadingRooms: false,
+        isLoadingMessages: false,
         roomId: null,
         createGetRoomError: error.toString(),
       );

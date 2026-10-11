@@ -15,7 +15,7 @@ User = get_user_model()
 class ProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
 
-    class Method:
+    class Meta:
         model = UserProfile
         fields = [
             "profile_picture",

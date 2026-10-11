@@ -52,6 +52,7 @@ dependencies:
   http: ^1.6.0
   flutter_svg: ^2.3.0
   image_picker: ^1.2.3
+  grouped_list: ^6.0.0
 
 dev_dependencies:
   flutter_test:

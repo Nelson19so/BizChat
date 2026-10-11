@@ -80,6 +80,10 @@ class ChatApiService {
         }
       );
 
+      if (!response.data['success']) {
+        throw ErrorHelper.getErrorMessage('Unknown Error');
+      }
+
       final data = response.data["room_id"];
       return data;
     } on DioException catch(error) {

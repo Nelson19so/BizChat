@@ -46,17 +46,10 @@ class ChatListWidget extends ConsumerWidget {
 
         final roomController = ref.read(chatRoomsControllerProvider);
 
-        Navigator.push(
-           context, MaterialPageRoute(
-           builder: (context) => MessageScreen(
-             roomId: roomController.roomId,
-             userProfilePic: avatar as ImageProvider,
-             userName: "$userName",
-           )
-          )
-        );
-
-        if (roomController.createGetRoomError != null && roomController.createGetRoomError!.isNotEmpty) {
+        if (
+          roomController.createGetRoomError != null &&
+          roomController.createGetRoomError!.isNotEmpty
+        ) {
           final controller = ref.read(chatRoomsControllerProvider);
 
           scaffholdmessage(
@@ -65,6 +58,17 @@ class ChatListWidget extends ConsumerWidget {
               type: ScaffHoldMessageType.failed
           );
         }
+
+        Navigator.push(
+            context, MaterialPageRoute(
+            builder: (context) => MessageScreen(
+              roomId: roomController.roomId,
+              userProfilePic: avatar as ImageProvider,
+              userName: "$userName",
+              userId: userId,
+            )
+        )
+        );
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,7 +119,7 @@ class ChatListWidget extends ConsumerWidget {
 
                       ?isLoadingItem == true ? const SizedBox(height: 10,) : null,
 
-                      if (userLastMessage != null || userLastMessage != '')
+                      if (isLoadingItem == true || (userLastMessage != null && userLastMessage!.isNotEmpty))
                         isLoadingItem != true ?
                           Text(
                             '$userLastMessage',
@@ -146,14 +150,19 @@ class ChatListWidget extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (userLastMessageTimeOrDate != null)
+              if (
+                userLastMessageTimeOrDate != null &&
+                userLastMessageTimeOrDate != 'null' &&
+                userLastMessageTimeOrDate!.isNotEmpty
+              )
                 Text(
                   "$userLastMessageTimeOrDate",
                   style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryWhiteGrey,
-                ),),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryWhiteGrey,
+                  ),
+                ),
 
               const SizedBox(height: 7,),
 
@@ -164,11 +173,14 @@ class ChatListWidget extends ConsumerWidget {
                       color: AppColors.primaryColor,
                       borderRadius: BorderRadius.circular(100)
                   ),
-                  child: Text("$unreadMessagesCount", style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryWhite,
-                  ),),
+                  child: Text(
+                    "$unreadMessagesCount",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryWhite,
+                    ),
+                  ),
                 )
             ],
           )

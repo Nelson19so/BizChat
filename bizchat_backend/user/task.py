@@ -13,6 +13,7 @@ def verify_user_account_task(profile_id):
 
         user_profile.is_verified == True
         user_profile.profile_completed_at = timezone.now()
+        user_profile.save()
     except UserProfile.DoesNotExist:
         return
     

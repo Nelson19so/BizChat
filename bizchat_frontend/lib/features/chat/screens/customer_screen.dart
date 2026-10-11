@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:grouped_list/grouped_list.dart';
 
 class CustomerScreen extends ConsumerStatefulWidget {
   const CustomerScreen({super.key});
@@ -232,23 +233,21 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
                     ? const Expanded(
                         child: Center(
                           child: Text(
-                            'No chats yet',
+                            'No Message found yet',
                             style: TextStyle(
-                              color: AppColors.secondaryBlack2,
-                              fontSize: 16,
+                                color: AppColors.secondaryWhiteGrey,
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic
                             ),
                           ),
                         ),
                       )
-                    : Expanded(
+                    : chatRooms.isLoadingRooms
+                    ? Expanded(
                         child: ListView.separated(
-                          itemCount: chatRooms.isLoadingRooms == false
-                              ? chatRooms.rooms!.length
-                              : 10,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 30),
-                          itemBuilder: (context, index) {
-                            if (chatRooms.isLoadingRooms) {
+                            separatorBuilder: (context, index) => const Divider(height: 12, thickness: 0.5, indent: 80, color: Colors.transparent,),
+                            itemCount: 10,
+                            itemBuilder: (context, index) {
                               return ChatListWidget(
                                 isLoadingItem: chatRooms.isLoadingRooms,
                                 userName: '',
@@ -256,8 +255,52 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
                                 userId: null,
                               );
                             }
+                        ),
+                      )
+                    : Expanded(
+                        child: GroupedListView<dynamic, String>(
+                          elements: chatRooms.rooms ?? [],
+                          groupBy: (room) {
+                            final chatUser = room.participant;
+                            final name = chatUser != null
+                                ? '${chatUser.firstName}'
+                                : 'Other';
+                            return name.isNotEmpty
+                                ? name[0].toUpperCase()
+                                : '#';
+                          },
 
-                            final room = chatRooms.rooms![index];
+                          useStickyGroupSeparators: false,
+
+                          groupComparator: (value1, value2) =>
+                              value1.compareTo(value2),
+
+                          itemComparator: (room1, room2) {
+                            final name1 = room1.participant?.firstName ?? '';
+                            final name2 = room2.participant?.firstName ?? '';
+                            return name1.compareTo(name2);
+                          },
+
+                          groupSeparatorBuilder: (String firstLetter) => Container(
+                            color: Colors.transparent,
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
+                              ),
+                              child: Text(
+                                firstLetter,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          itemBuilder: (context, room) {
                             final chatUser = room.participant;
 
                             final ImageProvider profileImage =
@@ -268,14 +311,18 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
                                     'assets/images/ph_user-light.png',
                                   );
 
-                            return ChatListWidget(
-                              isLoadingItem: chatRooms.isLoadingRooms,
-                              userId: chatUser!.id,
-                              userName:
-                                  '${chatUser.firstName} ${chatUser.lastName}',
-                              userLastMessage: room.lastMessage,
-                              userProfilePic: profileImage,
-                              userLastMessageTimeOrDate: "${room.lastMessageTime}",
+                            return Column(
+                              children: [
+                                ChatListWidget(
+                                  isLoadingItem: chatRooms.isLoadingRooms,
+                                  userId: chatUser!.id,
+                                  userName: '${chatUser.firstName} ${chatUser.lastName}',
+                                  userLastMessage: "",
+                                  userProfilePic: profileImage,
+                                  userLastMessageTimeOrDate: "",
+                               ),
+
+                                const Divider(height: 12, thickness: 0.5, indent: 80, color: Colors.transparent,),                              ],
                             );
                           },
                         ),
@@ -390,15 +437,15 @@ Widget _addUserPhoneNumberWidget({
             const SizedBox(height: 20),
 
             /// content
-            if (phoneSearchFieldController.text.isNotEmpty)
+            if (phoneSearchFieldController.text.isNotEmpty && phoneSearchFieldController.text.length == 11)
               ChatListWidget(
-                userId: chatRooms.simpleUser!.id,
+                userId: chatRooms.simpleUser?.id,
                 isLoadingItem: chatRooms.isLoadingRooms,
                 userName:
                     '${chatRooms.simpleUser?.firstName} ${chatRooms.simpleUser?.lastName}',
-                userProfilePic:
-                    (chatRooms.simpleUser!.profilePicture!.isNotEmpty &&
-                        chatRooms.simpleUser!.profilePicture!.isNotEmpty)
+                userProfilePic: (
+                    chatRooms.simpleUser?.profilePicture != null
+                )
                     ? NetworkImage("${chatRooms.simpleUser?.profilePicture}")
                           as ImageProvider
                     : const AssetImage('assets/images/ph_user-light.png')
@@ -406,11 +453,7 @@ Widget _addUserPhoneNumberWidget({
               ),
 
             if (chatRooms.simpleUser == null && canShowSearchMessage)
-              Expanded(
-                child: Center(
-                  child: Text("Search is Empty")
-                )
-              ),
+              Expanded(child: Center(child: Text("Search is Empty"))),
           ],
         ),
       ),

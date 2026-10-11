@@ -44,7 +44,8 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = 'user'
         verbose_name_plural = 'users'
-    
+
+    @property
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
 
