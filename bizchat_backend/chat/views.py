@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.shortcuts    import get_object_or_404
 from django.db.models    import Q, Prefetch
-from django.core.cache   import cache
 
 from .models import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers   import (
@@ -15,6 +14,7 @@ from .serializers   import (
 )
 
 from user.models import CustomUser, UserProfile
+from config.cache.cache_mixins import ChatRoomCacheMixin
 
 
 User = get_user_model()
@@ -46,13 +46,13 @@ messages_prefetch = Prefetch(
 def get_or_create_user_search(user_id):
     if user_id:
         user_search = UserChatRoomSearchHistory.objects.get_or_create(
-            user__id=user_id
+            user_id=user_id
         )
 
         return user_search
 
 
-class UserRoomsView(generics.ListAPIView):
+class UserRoomsView(ChatRoomCacheMixin, generics.ListAPIView):
     '''
     User Chat Room with Cache and database optimization
     This View filters rooms where user is active
@@ -61,24 +61,26 @@ class UserRoomsView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        chat_room_key = f"chat_room_user_{self.request.user.id}"
+        user_id = self.request.user.id
 
-        queryset = cache.get(chat_room_key)
+        queryset = self.get_room_cache()
 
         if not queryset:
             queryset = ChatRoom.objects.filter(
-                participants=self.request.user
+                participants__id=user_id
             ).prefetch_related(
                 participant_prefetch, 
                 messages_prefetch
             ).distinct()
 
-            cache.set(chat_room_key, queryset, 55)
+            self.set_room_cache(
+                data=queryset, timeout=8200
+            )
 
         return queryset
 
 
-class UserRoomsWithChatView(generics.ListAPIView):
+class UserRoomsWithChatView(ChatRoomCacheMixin, generics.ListAPIView):
     '''
     User Chat Room with Cache and database optimization
     This View filters user rooms with Chat a Message
@@ -87,21 +89,23 @@ class UserRoomsWithChatView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        chat_room_key = f"message_chat_room_user_{self.request.user.id}"
-        user = self.request.user.id,
+        user_id = self.request.user.id
 
-        queryset = cache.get(chat_room_key)
+        queryset = self.get_message_room_cache()
 
         if not queryset:
             queryset = ChatRoom.objects.filter(
-                participants=user,
+                participants__id=user_id,
             ).prefetch_related(
                 participant_prefetch,
                 messages_prefetch
             ).distinct()
 
             # Set Chat room for user
-            cache.set(chat_room_key, queryset, 45)
+            self.set_message_room_cache(
+                data=queryset,
+                timeout=8200
+            )
 
         return queryset
 
@@ -109,6 +113,17 @@ class UserRoomsWithChatView(generics.ListAPIView):
 class SearchMyCustomersByNameView(generics.ListAPIView):
     serializer_class = SimpleUserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        search_input = request.query_params.get("search_name", '')
+
+        if not search_input:
+            return Response(
+                {"details": "search Name parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         search_input = self.request.query_params.get("search_name", '')
@@ -122,7 +137,7 @@ class SearchMyCustomersByNameView(generics.ListAPIView):
         name_part = search_input.split()
 
         if not name_part:
-            return User.objects.none()
+            User.objects.none()
 
         base_queryset = User.objects.filter(
             chatroom__participants=self.request.user
@@ -133,14 +148,14 @@ class SearchMyCustomersByNameView(generics.ListAPIView):
 
         if len(name_part) >= 2:
             first, last = name_part[0], name_part[1]
-            queryset = base_queryset.objects.filter(
+            queryset = base_queryset.filter(
                 first_name__icontains=first,
                 last_name__icontains=last,
             ).distinct()
 
         else:
             single_name = name_part[0]
-            queryset = base_queryset.objects.filter(
+            queryset = base_queryset.filter(
                 Q(first_name__icontains=single_name) |
                 Q(last_name__icontains=single_name),
             ).distinct()
@@ -182,18 +197,25 @@ class SearchUserByPhoneNumberApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user_profile = User.objects.filter(
-            profile__phone_number=phone_number
-        ).exclude(
-            id=request.user.id
-        ).select_related(
-            "profile",
-        ).only(
-            "id",
-            "profile__id",
-            "profile__phone_number",
-            "profile__profile_picture",
-        ).distinct().first()
+        user_profile = (
+            User.objects.filter(
+                profile__phone_number=phone_number
+            ).exclude(
+                id=request.user.id
+            ).select_related(
+                "profile",
+            ).only(
+                "id",
+                "first_name",
+                "last_name",
+
+                "profile__id",
+                "profile__phone_number",
+                "profile__profile_picture",
+            )
+            .distinct()
+            .first()
+        )
 
         if not user_profile:
             return Response(
@@ -202,7 +224,7 @@ class SearchUserByPhoneNumberApiView(APIView):
             )
 
         # Get or create user search history
-        get_or_create_user_search(user_profile.id)
+        get_or_create_user_search(user_id=user_profile.id)
 
         serializer = SimpleUserSerializer(user_profile)
 
@@ -213,8 +235,8 @@ class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        room_id = self.request.query_params.get("room_id")
+    def get(self, request, *args, **kwargs):
+        room_id = request.query_params.get("room_id")
 
         if not room_id:
             return Response(
@@ -222,8 +244,13 @@ class MessageListView(generics.ListAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        room_id = self.request.query_params.get("room_id")
+        
         return Message.objects.filter(
-            room__id=room_id
+            room_id=room_id
         ).order_by(
             "created_at"
         ).select_related(

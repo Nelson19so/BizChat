@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String getTimeAgo(dynamic timeStamp) {
   DateTime? dateTime;
 
@@ -29,4 +31,25 @@ String getTimeAgo(dynamic timeStamp) {
   }
 
   return '${dateTime.minute}/${dateTime.hour}';
+}
+
+String formatHeaderDate(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = DateTime(now.year, now.month, now.day);
+  final messageData = DateTime(date.year, date.month, date.day);
+
+  if (messageData == today) {
+    return "Today";
+  } else if (messageData == yesterday) {
+    return "Yesterday";
+  } else {
+    return DateFormat("MMMM d, yyyy").format(date);
+  }
+}
+
+DateTime parseDate(dynamic timeStamp) {
+  if (timeStamp is DateTime) return timeStamp;
+  if (timeStamp is String) return DateTime.tryParse(timeStamp) ?? DateTime.now();
+  return DateTime.now();
 }

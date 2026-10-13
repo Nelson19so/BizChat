@@ -48,7 +48,7 @@ class _CustomerScreenState extends ConsumerState<CustomerScreen> {
   void _searchPhoneNumberListener() {
     final phoneField = _phoneSearchFieldController.text.trim();
 
-    if (phoneField.isEmpty) {
+    if (phoneField.isEmpty || phoneField.length < 11) {
       setState(() {
         _canShowSearchMessage = true;
       });
@@ -437,7 +437,7 @@ Widget _addUserPhoneNumberWidget({
             const SizedBox(height: 20),
 
             /// content
-            if (phoneSearchFieldController.text.isNotEmpty && phoneSearchFieldController.text.length == 11)
+            if (phoneSearchFieldController.text.isNotEmpty && phoneSearchFieldController.text.length == 11 && chatRooms.simpleUser != null)
               ChatListWidget(
                 userId: chatRooms.simpleUser?.id,
                 isLoadingItem: chatRooms.isLoadingRooms,
@@ -452,7 +452,7 @@ Widget _addUserPhoneNumberWidget({
                           as ImageProvider,
               ),
 
-            if (chatRooms.simpleUser == null && canShowSearchMessage)
+            if (chatRooms.simpleUser == null || canShowSearchMessage)
               Expanded(child: Center(child: Text("Search is Empty"))),
           ],
         ),

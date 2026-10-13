@@ -130,4 +130,8 @@ class ChatRoomsController extends StateNotifier<ChatRoomsState> {
   void clearPhoneSearch() {
     state = state.copyWith(simpleUser: null);
   }
+
+  void clearMessages() {
+    state= state.copyWith(roomMessages: null);
+  }
 }

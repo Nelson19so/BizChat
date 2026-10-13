@@ -1,6 +1,5 @@
 import 'package:bizchat_frontend/features/settings/data/profile_api_response.dart';
 import 'package:bizchat_frontend/features/settings/model/user.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 class ProfileControllerState {
@@ -13,15 +12,11 @@ class ProfileControllerState {
     required this.isLoading,
     this.error,
     this.user,
-    this.success
+    this.success,
   });
 
   factory ProfileControllerState.initial() {
-    return ProfileControllerState(
-      isLoading: false,
-      error: null,
-      success: null,
-    );
+    return ProfileControllerState(isLoading: false, error: null, success: null);
   }
 
   ProfileControllerState copyWith({
@@ -57,11 +52,7 @@ class ProfileController extends StateNotifier<ProfileControllerState> {
     String? imagePath,
   }) async {
     try {
-      state = state.copyWith(
-        error: null,
-        success: null,
-        isLoading: true,
-      );
+      state = state.copyWith(error: null, success: null, isLoading: true);
 
       final response = await api.updateUserProfile(
         firstName: firstName,
@@ -73,7 +64,7 @@ class ProfileController extends StateNotifier<ProfileControllerState> {
         phoneNumber: phoneNumber,
         address: address,
         profileCountry: profileCountry,
-        imagePath: imagePath
+        imagePath: imagePath,
       );
 
       if (response.success == true && response.details != null) {

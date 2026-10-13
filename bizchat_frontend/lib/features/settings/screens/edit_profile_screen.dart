@@ -166,8 +166,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onTap: () {
                     final ImageProvider targetImage;
 
-                    if (profilePic != null && profilePic!.contains('http')) {
-                      targetImage = NetworkImage(profilePic!);
+                    if (profilePic != null && profilePic.contains('http')) {
+                      targetImage = NetworkImage(profilePic);
                     } else {
                       targetImage = const AssetImage(
                         'assets/images/ph_user-light.png',

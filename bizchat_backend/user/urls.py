@@ -1,13 +1,10 @@
 from django.urls import path
 from .views.auth_views import (
-    UserRegistrationView, 
-    UserLoginView, 
-    LogoutUserApiView, 
-    DeleteUserApiView
+    UserRegistrationView, UserLoginView, 
+    LogoutUserApiView, DeleteUserApiView
 )
 from .views.profile_view import (
-    UserApiView, 
-    UserProfileApiView, 
+    UserApiView, UserProfileApiView, 
     PublicProfileApiView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView

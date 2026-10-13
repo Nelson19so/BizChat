@@ -59,16 +59,27 @@ class ChatListWidget extends ConsumerWidget {
           );
         }
 
-        Navigator.push(
-            context, MaterialPageRoute(
-            builder: (context) => MessageScreen(
-              roomId: roomController.roomId,
-              userProfilePic: avatar as ImageProvider,
-              userName: "$userName",
-              userId: userId,
-            )
-        )
-        );
+        await ref
+            .read(chatRoomsControllerProvider.notifier)
+            .getUserChatRoomMessages(roomController.roomId!);
+
+        if (!context.mounted) return;
+
+        final result = await  Navigator.push(
+              context, MaterialPageRoute(
+              builder: (context) =>
+                MessageScreen(
+                  roomId: roomController.roomId,
+                  userProfilePic: avatar as ImageProvider,
+                  userName: "$userName",
+                  userId: userId,
+                )
+              )
+          );
+
+        if (result == true) {
+          ref.read(chatRoomsControllerProvider.notifier).getUserChatRooms();
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

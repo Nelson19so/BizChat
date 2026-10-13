@@ -2,6 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from datetime import timezone, datetime
+from rest_framework.exceptions import PermissionDenied
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -53,12 +54,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         User = get_user_model()
 
         if not user_id:
-            raise ValueError("Attempt to save message with no  user_id provided")
+            raise ValueError(
+                "Attempt to save message with no  user_id provided"
+            )
 
-        user_instance = User.objects.get(id=user_id)
-        room_instance = ChatRoom.objects.get(
-            id=self.room_id,
+        user_instance = User.objects.get(
+            id=user_id
         )
+
+        try:
+            room_instance = ChatRoom.objects.get(
+                id=self.room_id,
+            )
+        except ChatRoom.DoesNotExist:
+            raise ValueError(
+                "This room is not longer available"
+            )
+
+        is_member = room_instance.participants.filter(
+            id=user_id
+        )
+
+        if not is_member:
+            raise PermissionDenied(
+                "You are not a member of this room."
+            )
         
         return Message.objects.create(
             room=room_instance,

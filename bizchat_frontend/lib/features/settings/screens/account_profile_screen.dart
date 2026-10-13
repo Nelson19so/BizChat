@@ -17,11 +17,7 @@ class AccountProfileScreen extends ConsumerWidget {
     const double _ = 60.0;
 
     final authState = ref.watch(authControllerProvider);
-    final user = authState.user;
-
-    // if (authState.isLoading) {
-    //   return const ScreenLoader();
-    // }
+    final user = authState.user ;
 
     String cleanValue(dynamic value) {
       if (value == null || value == "") return '---';
