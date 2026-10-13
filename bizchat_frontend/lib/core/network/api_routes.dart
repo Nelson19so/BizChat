@@ -1,6 +1,10 @@
 class ApiRoutes {
+  static const String httpUrl = "http://";
+  static const String webSocketUrl = "ws://";
+
   /// Base url endpoint
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static const String baseUrl = '${httpUrl}10.0.2.2:8000';
+  static const String webSocketBaseUrl = '${webSocketUrl}10.0.2.2:8000';
 
   /// Auth user url endpoint
   static const String register = '/user/register/';
@@ -13,7 +17,14 @@ class ApiRoutes {
   static const String deleteUser = '/user/delete_myaccount/';
   static const String updateUser = '/user/profile/';
 
-  /// Chat url endpoint
+  /// Chat User url endpoint
   static const String getAllChatList = '/api/chat_list/';
   static const String getAllChatListImessage = '/api/chat_list_imessage/';
+  static const String searchUserByName = '/api/chat_list/SearchMyCustomersByNameView/';
+  static const String searchUserByPhone = '/api/chat_list/searchUserNumber/';
+  static const String getOrCreateUserRoom = '/api/chat_list/room_get_create/';
+  static const String getRoomMessageList = '/api/chat_list/messages/';
+
+  /// Message channel route
+  static const String channelMessage = '/ws/chat/';
 }

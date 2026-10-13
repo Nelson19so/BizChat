@@ -6,7 +6,7 @@ import 'package:bizchat_frontend/core/widget/full_screen_image_viewer.dart';
 import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/core/widget/show_dialog.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:bizchat_frontend/features/settings/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,18 +54,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       }
     });
 
-    _subscription = ref.listenManual<ProfileControllerState>(profileControllerProvider, (previous, next) async {
-      if (!mounted) return;
+    _subscription = ref.listenManual<ProfileControllerState>(
+      profileControllerProvider,
+      (previous, next) async {
+        if (!mounted) return;
 
-      if (next.success != null) {
-
-        scaffholdmessage(
+        if (next.success != null) {
+          scaffholdmessage(
             context: context,
             message: '${next.success}',
-            type: ScaffHoldMessageType.successful
-        );
-      }
-    });
+            type: ScaffHoldMessageType.successful,
+          );
+        }
+      },
+    );
 
     super.initState();
   }
@@ -74,7 +76,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
     if (pickedFile != null) {
       setState(() {
@@ -102,7 +106,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final authState = ref.watch(authControllerProvider);
     final user = authState.user;
 
@@ -150,7 +153,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ],
           ),
 
-          const SizedBox(height: 20,),
+          const SizedBox(height: 20),
         ],
       ),
 
@@ -163,16 +166,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onTap: () {
                     final ImageProvider targetImage;
 
-                    if (profilePic != null && profilePic!.contains('http')) {
-                      targetImage = NetworkImage(profilePic!);
+                    if (profilePic != null && profilePic.contains('http')) {
+                      targetImage = NetworkImage(profilePic);
                     } else {
-                      targetImage = const AssetImage('assets/images/ph_user-light.png');
+                      targetImage = const AssetImage(
+                        'assets/images/ph_user-light.png',
+                      );
                     }
 
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FullScreenImageViewer(imageProvider: targetImage),
+                        builder: (context) =>
+                            FullScreenImageViewer(imageProvider: targetImage),
                       ),
                     );
                   },
@@ -188,12 +194,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             ? FileImage(_selectedImage!) as ImageProvider
                             : profilePic != null
                             ? NetworkImage(profilePic)
-                            : const AssetImage('assets/images/ph_user-light.png'),
+                            : const AssetImage(
+                                'assets/images/ph_user-light.png',
+                              ),
                       ),
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   bottom: 0,
                   right: 10,
@@ -204,95 +212,92 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: AppColors.secondaryWhite,
-                        borderRadius: BorderRadius.circular(100)
+                        borderRadius: BorderRadius.circular(100),
                       ),
                       child: SvgPicture.asset('assets/svgs/IoCamera.svg'),
                     ),
-                  )
-                )
+                  ),
+                ),
               ],
             ),
 
-            const SizedBox(height: 34,),
+            const SizedBox(height: 34),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                    child: _editProfileTextField(
-                      controller: _firstNameController,
-                      hinText: 'First Name',
-                      leftRowField: true,
-                    )
+                  child: _editProfileTextField(
+                    controller: _firstNameController,
+                    hinText: 'First Name',
+                    leftRowField: true,
+                  ),
                 ),
 
-                const SizedBox(width: 13,),
+                const SizedBox(width: 13),
 
                 Expanded(
                   child: _editProfileTextField(
                     controller: _lastNameController,
                     hinText: 'Last Name',
                     rightRowField: true,
-                  )
+                  ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
             _editProfileTextField(
               controller: _birthDate,
-              hinText: 'Birth Date'
+              hinText: 'Birth Date',
             ),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
-            _editProfileTextField(
-              controller: _address,
-              hinText: 'Address'
-            ),
+            _editProfileTextField(controller: _address, hinText: 'Address'),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                    child: _editProfileTextField(
-                      controller: _profileState,
-                      hinText: 'State',
-                      leftRowField: true,
-                    )
+                  child: _editProfileTextField(
+                    controller: _profileState,
+                    hinText: 'State',
+                    leftRowField: true,
+                  ),
                 ),
 
-                const SizedBox(width: 13,),
+                const SizedBox(width: 13),
 
                 Expanded(
-                    child: _editProfileTextField(
-                      controller: _zipCode,
-                      hinText: 'Zip Code',
-                      rightRowField: true,
-                      maxLength: 4
-                    )
+                  child: _editProfileTextField(
+                    controller: _zipCode,
+                    hinText: 'Zip Code',
+                    rightRowField: true,
+                    maxLength: 4,
+                  ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
             _editProfileTextField(
-                controller: _profileCountry,
-                hinText: 'Country'
+              controller: _profileCountry,
+              hinText: 'Country',
             ),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
             _editProfileTextField(
-                controller: _profileEmail,
-                hinText: 'Email Address'
+              controller: _profileEmail,
+              hinText: 'Email Address',
             ),
 
-            const SizedBox(height: 19,),
+            const SizedBox(height: 19),
 
             _editProfileTextField(
               controller: _phoneNumber,
@@ -301,7 +306,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               readOnly: _phoneNumber.text.isNotEmpty,
             ),
 
-            const SizedBox(height: 39,),
+            const SizedBox(height: 39),
 
             SizedBox(
               width: double.infinity,
@@ -313,42 +318,48 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                   minimumSize: const Size(200, 50),
                 ),
-                onPressed: profileState.isLoading ? null : () async {
-                  await ref.read(profileControllerProvider.notifier).updateProfile(
-                    firstName: _firstNameController.text,
-                    lastName: _lastNameController.text,
-                    birthDate: _birthDate.text,
-                    profileState: _profileState.text,
-                    zipCode: _zipCode.text,
-                    profileEmail: _profileEmail.text,
-                    phoneNumber: _phoneNumber.text,
-                    address: _address.text,
-                    profileCountry: _profileCountry.text,
-                    imagePath: _selectedImage?.path,
-                  );
-                },
-                child: authState.isLoading ? SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                ) :  Text(
-                  'Save',
-                  style: TextStyle(
-                    color: AppColors.secondaryWhite,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                onPressed: profileState.isLoading
+                    ? null
+                    : () async {
+                        await ref
+                            .read(profileControllerProvider.notifier)
+                            .updateProfile(
+                              firstName: _firstNameController.text,
+                              lastName: _lastNameController.text,
+                              birthDate: _birthDate.text,
+                              profileState: _profileState.text,
+                              zipCode: _zipCode.text,
+                              profileEmail: _profileEmail.text,
+                              phoneNumber: _phoneNumber.text,
+                              address: _address.text,
+                              profileCountry: _profileCountry.text,
+                              imagePath: _selectedImage?.path,
+                            );
+                      },
+                child: authState.isLoading
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Save',
+                        style: TextStyle(
+                          color: AppColors.secondaryWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
 
-            const SizedBox(height: 25,),
+            const SizedBox(height: 25),
           ],
         ),
-      )
+      ),
     );
   }
 
@@ -358,7 +369,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     bool leftRowField = false,
     bool rightRowField = false,
     int? maxLength,
-    bool readOnly = false
+    bool readOnly = false,
   }) {
     return TextField(
       controller: controller,
@@ -367,32 +378,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       decoration: InputDecoration(
         hintText: hinText,
         counterText: "",
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 24, vertical: 15
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 15),
         filled: true,
         fillColor: const Color(0xFFE1E1E1),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide.none,
-          borderRadius: rightRowField ? BorderRadius.only(
-            topRight: Radius.circular(20),
-            bottomRight: Radius.circular(20)
-          ) : leftRowField ? BorderRadius.only(
-            topLeft: Radius.circular(20),
-            bottomLeft: Radius.circular(20)
-          ) : BorderRadius.circular(20),
+          borderRadius: rightRowField
+              ? BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                )
+              : leftRowField
+              ? BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                )
+              : BorderRadius.circular(20),
         ),
 
-        focusedBorder:OutlineInputBorder(
+        focusedBorder: OutlineInputBorder(
           borderSide: BorderSide.none,
-          borderRadius: rightRowField ? BorderRadius.only(
-            topRight: Radius.circular(20),
-            bottomRight: Radius.circular(20)
-          ) : leftRowField ? BorderRadius.only(
-            topLeft: Radius.circular(20),
-            bottomLeft: Radius.circular(20)
-          ) : BorderRadius.circular(20),
-        )
+          borderRadius: rightRowField
+              ? BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                )
+              : leftRowField
+              ? BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                )
+              : BorderRadius.circular(20),
+        ),
       ),
     );
   }

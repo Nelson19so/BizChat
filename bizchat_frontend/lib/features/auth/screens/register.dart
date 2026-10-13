@@ -4,7 +4,7 @@ import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
 import 'package:bizchat_frontend/features/auth/controllers/auth_controller.dart';
 import 'package:bizchat_frontend/features/auth/screens/widget/text_field_widget.dart';
 import 'package:bizchat_frontend/features/chat/screens/home.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +34,9 @@ class _RegisterState extends ConsumerState<Register> {
 
   void _validatePassword() {
     final password = passwordController.text.trim();
-    final strongPasswordRegex = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$');
+    final strongPasswordRegex = RegExp(
+      r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$',
+    );
 
     setState(() {
       if (password.isEmpty) {
@@ -75,7 +77,7 @@ class _RegisterState extends ConsumerState<Register> {
         lastNameError = 'Last Name is required';
       } else if (lastName.length <= 3) {
         lastNameError = 'Last name is too short';
-      }  else if (!letterRegEx.hasMatch(lastName)) {
+      } else if (!letterRegEx.hasMatch(lastName)) {
         lastNameError = 'Last name must contain only letters';
       } else {
         lastNameError = null;
@@ -110,10 +112,10 @@ class _RegisterState extends ConsumerState<Register> {
 
     setState(() {
       _canRegister =
-        firstNameError == null
-        && lastNameError == null
-        && emailError == null
-        && passwordError == null;
+          firstNameError == null &&
+          lastNameError == null &&
+          emailError == null &&
+          passwordError == null;
     });
   }
 
@@ -127,19 +129,22 @@ class _RegisterState extends ConsumerState<Register> {
     emailController.addListener(_validateEmail);
     passwordController.addListener(_validatePassword);
 
-    Future.microtask(() => {
-      ref.read(authControllerProvider.notifier).clearError()
-    });
+    Future.microtask(
+      () => {ref.read(authControllerProvider.notifier).clearError()},
+    );
 
-    _subscription = ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
+    _subscription = ref.listenManual<AuthState>(authControllerProvider, (
+      previous,
+      next,
+    ) {
       if (!mounted) return;
 
       final justRegistered =
-        previous?.isLoading == true &&
-        next.isLoading == false &&
-        next.success != null &&
-        next.error == null &&
-        next.isLoggedIn == true;
+          previous?.isLoading == true &&
+          next.isLoading == false &&
+          next.success != null &&
+          next.error == null &&
+          next.isLoggedIn == true;
 
       if (justRegistered && !_handleRegister) {
         _handleRegister = true;
@@ -147,13 +152,11 @@ class _RegisterState extends ConsumerState<Register> {
         scaffholdmessage(
           context: context,
           message: '${next.success}',
-          type: ScaffHoldMessageType.successful
+          type: ScaffHoldMessageType.successful,
         );
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       }
     });
@@ -390,7 +393,7 @@ class _RegisterState extends ConsumerState<Register> {
                     ],
                   ),
 
-                  const SizedBox(height: 20,),
+                  const SizedBox(height: 20),
 
                   if (authState.error != null && authState.isLoading == false)
                     Text(
@@ -413,28 +416,34 @@ class _RegisterState extends ConsumerState<Register> {
                         ),
                         minimumSize: const Size(200, 50),
                       ),
-                      onPressed: authState.isLoading ? null : () {
-                        _validateBeforeRegister();
+                      onPressed: authState.isLoading
+                          ? null
+                          : () {
+                              _validateBeforeRegister();
 
-                        if (!isChecked) {
-                          scaffholdmessage(
-                            context: context,
-                            message: 'Please agree to receive newsletters to proceed.',
-                            type: ScaffHoldMessageType.failed,
-                          );
-                          return;
-                        }
+                              if (!isChecked) {
+                                scaffholdmessage(
+                                  context: context,
+                                  message:
+                                      'Please agree to receive newsletters to proceed.',
+                                  type: ScaffHoldMessageType.failed,
+                                );
+                                return;
+                              }
 
-                        /// Register provider
-                        if (_canRegister) {
-                          ref.read(authControllerProvider.notifier).register(
-                              firstName: firstNameController.text.trim(),
-                              lastName: lastNameController.text.trim(),
-                              email: emailController.text.trim(),
-                              password: passwordController.text.trim()
-                          );
-                        }
-                      },
+                              /// Register provider
+                              if (_canRegister) {
+                                ref
+                                    .read(authControllerProvider.notifier)
+                                    .register(
+                                      firstName: firstNameController.text
+                                          .trim(),
+                                      lastName: lastNameController.text.trim(),
+                                      email: emailController.text.trim(),
+                                      password: passwordController.text.trim(),
+                                    );
+                              }
+                            },
                       child: authState.isLoading
                           ? SizedBox(
                               width: 24,

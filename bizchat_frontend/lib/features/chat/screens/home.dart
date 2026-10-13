@@ -1,9 +1,8 @@
 import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/bottom_nav_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
-import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/features/chat/widget/chat_list_widget.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -23,6 +22,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
 
     Future.microtask(() {
+      ref.read(chatRoomsControllerProvider.notifier).clearError();
+
       if (_loaded) return;
       _loaded = true;
 
@@ -37,10 +38,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final chatRooms = ref.watch(chatRoomsControllerProvider);
 
     final user = authState.user;
-
-    if (authState.isLoading || chatRooms.isLoadingRooms) {
-      return const ScreenLoader();
-    }
 
     return AppLayout(
       isHome: true,
@@ -62,12 +59,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Container(
                     padding: EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                        border: Border.all(
-                            color: AppColors.secondaryWhiteGrey
-                        ),
-                        borderRadius: BorderRadius.circular(100)
+                      border: Border.all(color: AppColors.secondaryWhiteGrey),
+                      borderRadius: BorderRadius.circular(100),
                     ),
-                    child: SvgPicture.asset('assets/svgs/Search.svg', height: 24, width: 24,),
+                    child: SvgPicture.asset(
+                      'assets/svgs/Search.svg',
+                      height: 24,
+                      width: 24,
+                    ),
                   ),
                 ),
 
@@ -76,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   style: TextStyle(
                     color: AppColors.secondaryWhite,
                     fontSize: 20,
-                    fontWeight: FontWeight.w500
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
 
@@ -84,13 +83,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      child: SvgPicture.asset('assets/svgs/clarity_bell-outline-badged.svg'),
+                      child: SvgPicture.asset(
+                        'assets/svgs/clarity_bell-outline-badged.svg',
+                      ),
                     ),
 
-                    SizedBox(width: 13,),
+                    SizedBox(width: 13),
 
                     GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/accountDetails'),
+                      onTap: authState.isLoading == true
+                          ? null
+                          : () =>
+                                Navigator.pushNamed(context, '/accountDetails'),
                       child: Container(
                         height: 44,
                         width: 44,
@@ -100,19 +104,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           image: DecorationImage(
                             fit: BoxFit.cover,
                             image: user?.profile.profilePicture != null
-                              ? NetworkImage('${user?.profile.profilePicture}')
-                              : const AssetImage('assets/images/ph_user-light.png'),
+                                ? NetworkImage(
+                                    '${user?.profile.profilePicture}',
+                                  )
+                                : const AssetImage(
+                                    'assets/images/ph_user-light.png',
+                                  ),
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
-                )
+                ),
               ],
             ),
           ),
 
-          const SizedBox(height: 40,),
+          const SizedBox(height: 40),
 
           SizedBox(
             height: 100,
@@ -123,43 +131,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(left: 12, right: 12),
                   child: GestureDetector(
-                    onTap: () {
-
-                    },
+                    onTap: () {},
                     child: Column(
                       children: [
                         Container(
                           padding: EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.deepOrangeAccent,
-                            ),
-                            borderRadius: BorderRadius.circular(100)
+                            border: Border.all(color: Colors.deepOrangeAccent),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: CircleAvatar(
                             radius: 26,
-                            backgroundImage: user?.profile.profilePicture != null
-                                ? NetworkImage('${user?.profile.profilePicture}')
-                                : const AssetImage('assets/images/demo/demo_user.png') as ImageProvider,
+                            backgroundImage:
+                                const AssetImage(
+                                      'assets/images/ph_user-light.png',
+                                    )
+                                    as ImageProvider,
                           ),
                         ),
 
-                        const SizedBox(height: 10,),
+                        const SizedBox(height: 10),
 
                         Text(
                           'Marina',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.secondaryWhite
+                            color: AppColors.secondaryWhite,
                           ),
-                        )
+                        ),
                       ],
-                    )
+                    ),
                   ),
                 );
-              }
+              },
             ),
-          )
+          ),
         ],
       ),
 
@@ -174,61 +180,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
 
-          const SizedBox(height: 24,),
+          const SizedBox(height: 24),
 
-          (chatRooms.error != null)
+          (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
               ? Expanded(
-            child: Center(
-              child: Text(
-                'Error: ${chatRooms.error}',
-                style: const TextStyle(color: Colors.redAccent, fontSize: 16),
-              ),
-            ),
-          )
-              : (chatRooms.rooms == null || chatRooms.rooms!.isEmpty)
-              ? const Expanded(
-            child: Center(
-              child: Text(
-                'No chats yet',
-                style: TextStyle(
-                  color: AppColors.secondaryBlack2,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          )
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset('assets/images/jam_messages-alt-f.png'),
 
+                      const Center(
+                        child: Text(
+                          'No Message found yet',
+                          style: TextStyle(
+                            color: AppColors.secondaryWhiteGrey,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                )
               : Expanded(
-            child: ListView.separated(
-              itemCount: chatRooms.rooms!.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 30,),
-              itemBuilder: (context, index) {
-                final room = chatRooms.rooms![index];
-                final chatUser = room.user;
+                  child: ListView.separated(
+                    itemCount: chatRooms.isLoadingRooms == false
+                        ? chatRooms.rooms!.length
+                        : 10,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 12, thickness: 0.5, indent: 80, color: Colors.transparent,),
+                    itemBuilder: (context, index) {
+                      if (chatRooms.isLoadingRooms) {
+                        return ChatListWidget(
+                          isLoadingItem: chatRooms.isLoadingRooms,
+                          userName: '',
+                          userProfilePic: null,
+                          userId: null,
+                        );
+                      }
 
-                final ImageProvider profileImage = (chatUser?.profile.profilePicture != null && chatUser!.profile.profilePicture!.isNotEmpty)
-                    ? NetworkImage(chatUser.profile.profilePicture!)
-                    : const AssetImage('assets/images/demo/demo_user.png');
+                      final room = chatRooms.rooms![index];
+                      final chatUser = room.participant;
 
-                return GestureDetector(
-                  onTap: () {
-                    // Handle chat screen navigation here
-                  },
-                  child: ChatListWidget(
-                    userName: '${chatUser?.firstName} ${chatUser?.lastName}',
-                    userLastMessage: room.lastMessage.isNotEmpty ? room.lastMessage : "",
-                    userLastMessageTimeOrDate: room.lastMessageTime != null
-                        ? '${room.lastMessageTime!.hour}:${room.lastMessageTime!.minute}'
-                        : '',
-                    userProfilePic: profileImage,
+                      final ImageProvider profileImage =
+                          (chatUser?.profilePicture != null &&
+                              chatUser!.profilePicture!.isNotEmpty)
+                          ? NetworkImage(chatUser.profilePicture!)
+                          : const AssetImage('assets/images/ph_user-light.png');
+
+                      return ChatListWidget(
+                        isLoadingItem: chatRooms.isLoadingRooms,
+                        userId: chatUser!.id,
+                        userName: '${chatUser.firstName} ${chatUser.lastName}',
+                        userLastMessage:
+                            "${room.lastMessage!.isNotEmpty ? room.lastMessage : ""}",
+                        userLastMessageTimeOrDate: room.lastMessageTime != null
+                            ? '${room.lastMessageTime!.hour}:${room.lastMessageTime!.minute}'
+                            : '',
+                        userProfilePic: profileImage,
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
         ],
       ),
-
     );
   }
 }

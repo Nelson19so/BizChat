@@ -1,14 +1,10 @@
 from django.urls import path
 from .views.auth_views import (
-    UserRegistrationView, 
-    UserLoginView, 
-    LogoutUserApiView, 
-    DeleteUserApiView
+    UserRegistrationView, UserLoginView, 
+    LogoutUserApiView, DeleteUserApiView
 )
 from .views.profile_view import (
-    UserApiView, 
-    UserProfileApiView, 
-    SearchUserByPhoneNumberApiView,
+    UserApiView, UserProfileApiView, 
     PublicProfileApiView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -25,9 +21,5 @@ urlpatterns = [
     # User details/profile endpoints
     path('me/', UserApiView.as_view(), name='my_accounts'),
     path('profile/', UserProfileApiView.as_view(), name='my_accounts_profile'),
-    path(
-        'search/<int:phone_number>/', SearchUserByPhoneNumberApiView.as_view(),
-        name='search_accounts'
-    ),
     path('public_user/<int:user_id>/', PublicProfileApiView.as_view(), name='public_user'),
 ]

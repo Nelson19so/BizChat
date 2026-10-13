@@ -19,16 +19,16 @@ class ContactUsScreen extends StatelessWidget {
             child: SvgPicture.asset('assets/svgs/chevron-left.svg'),
           ),
 
-          const SizedBox(width: 12,),
+          const SizedBox(width: 12),
 
           const Text(
             'My Profile',
             style: TextStyle(
               color: AppColors.secondaryWhite,
               fontSize: 18,
-              fontWeight: FontWeight.bold
+              fontWeight: FontWeight.bold,
             ),
-          )
+          ),
         ],
       ),
 
@@ -43,32 +43,25 @@ class ContactUsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 34,
                   color: AppColors.secondaryBlack,
-                  fontWeight: FontWeight.w600
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 15,),
+          const SizedBox(height: 15),
 
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.secondaryGray4,
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: 16, vertical: 8
-            ),
+            decoration: BoxDecoration(color: AppColors.secondaryGray4),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
               'CONTACT',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.secondaryGray8,
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.secondaryGray8),
             ),
           ),
 
-          const SizedBox(height: 16,),
+          const SizedBox(height: 16),
 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
@@ -79,30 +72,27 @@ class ContactUsScreen extends StatelessWidget {
                   children: [
                     SvgPicture.asset('assets/svgs/sms.svg'),
 
-                    const SizedBox(width: 8,),
-                    
+                    const SizedBox(width: 8),
+
                     const Text(
                       'Email',
                       style: TextStyle(
                         fontSize: 15,
                         color: AppColors.secondaryBlack,
                       ),
-                    )
+                    ),
                   ],
                 ),
 
                 Text(
                   'Info@youremailid.com',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF3D4260)
-                  ),
-                )
+                  style: TextStyle(fontSize: 16, color: Color(0xFF3D4260)),
+                ),
               ],
             ),
-          )
+          ),
         ],
-      )
+      ),
     );
   }
 }

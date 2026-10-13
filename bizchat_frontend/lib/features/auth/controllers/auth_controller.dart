@@ -83,6 +83,12 @@ class AuthController extends StateNotifier<AuthState> {
           success: loginResponse.details,
           user: loginResponse.user,
         );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: "server error, try again",
+          success: null
+        );
       }
     } catch (e) {
       state = state.copyWith(

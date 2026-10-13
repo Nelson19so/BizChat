@@ -46,7 +46,7 @@ class Profile {
       zipCode: json['zip_code'] as String?,
       country: json['country'] as String?,
       phoneNumber: json['phone_number'] as String?,
-      verified: json['verified'] as bool?,
+      verified: json['is_verified'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,

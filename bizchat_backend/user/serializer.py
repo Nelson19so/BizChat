@@ -1,38 +1,44 @@
-from rest_framework import serializers
-from .models import CustomUser, UserProfile
+from rest_framework     import serializers
+from .models            import CustomUser, UserProfile
 from django.contrib.auth.password_validation import validate_password
-from django.db import IntegrityError, transaction
+from django.db          import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import authenticate, get_user_model
-from .utils import validate_name
-from datetime import date, timedelta
-from django.utils import timezone
+from .utils             import validate_name
+from datetime           import date
 
 
 User = get_user_model()
 
 
-# Used strictly for participant card inside rooms list
-class SimpleUserSerializer(serializers.ModelSerializer):
+# User profile Serializer
+class ProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
-        fields = ["id", "first_name", "last_name", "profile_picture"]
+        model = UserProfile
+        fields = [
+            "profile_picture",
+            "date_of_birth",
+            "address",
+            "state",
+            "zip_code",
+            "country",
+            "phone_number",
+            "created_at",
+            "is_verified",
+        ]
 
     def get_profile_picture(self, obj):
-        profile = getattr(obj, "profile", None) 
-        if profile and profile.profile_picture:
-            return profile.profile_picture.url
-        return None
-    
+        return obj.profile_picture.url if obj.profile_picture else None
+
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = serializers.SerializerMethodField()
+    profile = ProfileSerializer(read_only=True)
     statuses = serializers.SerializerMethodField()
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'id', 
             'email', 
@@ -46,47 +52,15 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def get_statuses(self, obj):
-        status = obj.statuses.all()
+        statuses = list(obj.statuses.all())
 
-        if status.exists():
-            return {
-                "has_status": True,
-                "count": obj.statuses.count(),
-                "latest_status_time": obj.statuses.latest("posted_at").posted_at
-            }
-
-        return {"has_status": False}
-
-    def get_profile(self, obj):
-        profile = getattr(obj, 'profile', None)
-
-        if not profile:
-            return {
-                "is_profile_filled": False,
-                "verified": False
-            }  
-
-        is_verified = False
-        
-        if profile.profile_completed_at:
-            one_day_passed = timezone.now() >= (profile.profile_completed_at + timedelta(days=1))
-            
-            if one_day_passed:
-                is_verified = True
-                if not profile.is_verified:
-                    profile.is_verified = True
-                    profile.save(update_fields=['is_verified'])    
+        if not statuses:
+            return {"has_status": False}
 
         return {
-            "profile_picture": profile.profile_picture.url if profile.profile_picture else None,
-            "date_of_birth": profile.date_of_birth,
-            "address": profile.address,
-            "state": profile.state,
-            "zip_code": profile.zip_code,
-            "country": profile.country,
-            "phone_number": profile.phone_number,
-            "created_at": profile.created_at,
-            "verified": is_verified,
+            "has_status": True,
+            "count": len(statuses),
+            "latest_status_time": obj.statuses.latest("posted_at").posted_at
         }
 
 
@@ -275,3 +249,4 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+

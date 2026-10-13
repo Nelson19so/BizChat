@@ -2,40 +2,39 @@ import 'package:bizchat_frontend/app_layout.dart';
 import 'package:bizchat_frontend/core/helper/capitalize_helper.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/full_screen_image_viewer.dart';
-import 'package:bizchat_frontend/core/widget/screen_loader.dart';
-import 'package:bizchat_frontend/features/provider/provders.dart';
+import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountProfileScreen extends ConsumerWidget {
-  const AccountProfileScreen({super.key});
+  final bool isPublicProfile;
+
+  const AccountProfileScreen({super.key, this.isPublicProfile = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const double avatarRadius = 60.0;
+    const double _ = 60.0;
 
     final authState = ref.watch(authControllerProvider);
-    final user = authState.user;
-
-    if (authState.isLoading) {
-      return const ScreenLoader();
-    }
+    final user = authState.user ;
 
     String cleanValue(dynamic value) {
-      if (value == null) return '--';
+      if (value == null || value == "") return '---';
       final str = value.toString().trim();
-      if (str.isEmpty || str.toLowerCase() == 'null') return '--';
+      if (str.isEmpty || str.toLowerCase() == 'null') return '---';
       return str;
     }
 
     final profilePic = user?.profile.profilePicture;
+    final dateOfBirth = user?.profile.dateOfBirth;
 
     final fullName = cleanValue(
-      '${user?.firstName.toCapitalized()} ${user?.lastName.toCapitalized()}'
+      '${user?.firstName.toCapitalized()} ${user?.lastName.toCapitalized()}',
     );
+
+    final userDateOfBirth = '${dateOfBirth?.day} / ${dateOfBirth?.month} / ${dateOfBirth?.year}';
     final country = cleanValue(user?.profile.country);
-    final dateOfBirth = cleanValue(user?.profile.dateOfBirth);
     final phone = cleanValue(user?.profile.phoneNumber);
     final email = cleanValue(user?.email);
 
@@ -63,7 +62,7 @@ class AccountProfileScreen extends ConsumerWidget {
             ],
           ),
 
-          const SizedBox(height: 20,),
+          const SizedBox(height: 20),
         ],
       ),
 
@@ -76,16 +75,19 @@ class AccountProfileScreen extends ConsumerWidget {
                   onTap: () {
                     final ImageProvider targetImage;
 
-                    if (profilePic != null && profilePic!.contains('http')) {
-                      targetImage = NetworkImage(profilePic!);
+                    if (profilePic != null && profilePic.contains('http')) {
+                      targetImage = NetworkImage(profilePic);
                     } else {
-                      targetImage = const AssetImage('assets/images/ph_user-light.png');
+                      targetImage = const AssetImage(
+                        'assets/images/ph_user-light.png',
+                      );
                     }
 
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FullScreenImageViewer(imageProvider: targetImage),
+                        builder: (context) =>
+                            FullScreenImageViewer(imageProvider: targetImage),
                       ),
                     );
                   },
@@ -99,13 +101,15 @@ class AccountProfileScreen extends ConsumerWidget {
                         fit: BoxFit.cover,
                         image: profilePic != null
                             ? NetworkImage(profilePic)
-                            : const AssetImage('assets/images/ph_user-light.png'),
+                            : const AssetImage(
+                                'assets/images/ph_user-light.png',
+                              ),
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 44,),
+                const SizedBox(height: 44),
 
                 _profileDetails(
                   title: fullName,
@@ -117,7 +121,7 @@ class AccountProfileScreen extends ConsumerWidget {
                 _profileDetails(
                   title: 'Birthday',
                   type: 'date',
-                  subTitle: dateOfBirth,
+                  subTitle: userDateOfBirth,
                 ),
 
                 _profileDetails(
@@ -126,11 +130,7 @@ class AccountProfileScreen extends ConsumerWidget {
                   subTitle: phone,
                 ),
 
-                _profileDetails(
-                  title: 'Email',
-                  type: 'email',
-                  subTitle: email,
-                )
+                _profileDetails(title: 'Email', type: 'email', subTitle: email),
               ],
             ),
           ),
@@ -157,9 +157,9 @@ class AccountProfileScreen extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 20,),
+          const SizedBox(height: 20),
         ],
-      )
+      ),
     );
   }
 
@@ -173,11 +173,8 @@ class AccountProfileScreen extends ConsumerWidget {
       padding: EdgeInsets.symmetric(vertical: 21),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.secondaryGray4,
-            width: 1.0,
-          ),
-        )
+          bottom: BorderSide(color: AppColors.secondaryGray4, width: 1.0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,24 +189,22 @@ class AccountProfileScreen extends ConsumerWidget {
                     title,
                     style: TextStyle(
                       fontSize: type == 'name' ? 28 : 15,
-                      fontWeight: type == 'name' ? FontWeight.w700 : FontWeight.bold
+                      fontWeight: type == 'name'
+                          ? FontWeight.w700
+                          : FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(width: 14,),
+                  const SizedBox(width: 14),
 
-                  if (isVerified)
-                    SvgPicture.asset('assets/svgs/verify.svg')
+                  if (isVerified) SvgPicture.asset('assets/svgs/verify.svg'),
                 ],
               ),
 
               if (type == 'date')
                 Text(
                   subTitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF3D4260),
-                  ),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF3D4260)),
                 ),
             ],
           ),
@@ -217,13 +212,10 @@ class AccountProfileScreen extends ConsumerWidget {
           if (type != 'date')
             Text(
               subTitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF3D4260),
-              ),
+              style: TextStyle(fontSize: 12, color: Color(0xFF3D4260)),
             ),
         ],
-      )
+      ),
     );
   }
 }

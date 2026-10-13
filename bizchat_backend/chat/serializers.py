@@ -1,7 +1,27 @@
-from rest_framework import serializers
-from .models import ChatRoom, Message, StatusPost
-from user.serializer import SimpleUserSerializer
-from user.models import CustomUser
+from rest_framework      import serializers
+from django.contrib.auth import get_user_model
+
+from .models        import ChatRoom, Message, StatusPost
+from user.models    import CustomUser
+
+
+User = get_user_model()
+
+
+# Used strictly for participant card inside rooms list
+class SimpleUserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "first_name", "last_name", "profile_picture"]
+
+    def get_profile_picture(self, obj):
+        profile = getattr(obj, "profile", None) 
+        
+        if profile and profile.profile_picture:
+            return profile.profile_picture.url
+        return None
 
 
 class RoomListSerializer(serializers.ModelSerializer):
@@ -25,33 +45,17 @@ class RoomListSerializer(serializers.ModelSerializer):
         return msg.text if msg else ""
 
     def get_last_message_time(self, obj):
-        messages = obj.messages.all()
-        msg = messages[0] if messages else None
-        return msg.created_at if msg else None
+        messages_time = obj.messages.all()
+        msg_time = messages_time[0] if messages_time else None
+        return msg_time.created_at if msg_time else None
 
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = SimpleUserSerializer(read_only=True)
-    room_dm = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ["id", "room", "room_dm", "sender", "text", "created_at"]
-
-    def get_room_dm(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user:
-            return None
-
-        room = obj.room
-        if not room:
-            return None
-
-        all_participants = room.participants.all()
-
-        other_user = next((u for u in all_participants if u.id != request.user.id), None)
-
-        return SimpleUserSerializer(other_user, context=self.context).data if other_user else None
+        fields = ["id", "room", "sender", "text", "created_at"]
 
 
 class StatusPostSerializer(serializers.ModelSerializer):
@@ -59,7 +63,7 @@ class StatusPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StatusPost
-        fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']
+        fields = ['id', 'user', 'caption', 'image', 'video', 'posted_at']      
 
 
 class CreateRoomSerializer(serializers.Serializer):
@@ -79,3 +83,4 @@ class CreateRoomSerializer(serializers.Serializer):
             )
 
         return value
+    

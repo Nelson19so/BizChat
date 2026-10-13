@@ -44,7 +44,8 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = 'user'
         verbose_name_plural = 'users'
-    
+
+    @property
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -71,19 +72,18 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.email}"
 
-    def save(self, *args, **kwargs):
+    @property
+    def verified_all_fields(self):
         required_fields = [
-            self.date_of_birth, self.address, self.state,
-            self.zip_code, self.country, self.phone_number
-        ]
-        
-        is_all_filled = all(value not in [None, ""] for value in required_fields)
-        
-        if is_all_filled and not self.profile_completed_at:
-            self.profile_completed_at = timezone.now()
-            self.is_verified = True
-        elif not is_all_filled:
-            self.profile_completed_at = None
-            self.is_verified = False
-            
-        super().save(*args, **kwargs)
+            self.date_of_birth,
+            self.address,
+            self.state,
+            self.zip_code,
+            self.country,
+            self.phone_number
+        ]    
+
+        return all(
+            field and str(field).strip() != " " for field in required_fields
+        )
+
