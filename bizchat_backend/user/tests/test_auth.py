@@ -81,16 +81,16 @@ class AuthApiTestCase(APITestCase):
         login_user_response = self.client.post(
             self.login_user_url,
             data={
-                "email": "testUser123@example.com",
-                "password": "TestUser123!",
+                "email": "user2@gmail.com",
+                "password": "password123",
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(
             login_user_response.status_code,
             status.HTTP_200_OK
-        )        
+        )
 
     # Test case 4
     def test_delete_authenticated_user_account(self):
