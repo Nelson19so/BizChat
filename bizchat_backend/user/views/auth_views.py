@@ -1,10 +1,14 @@
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, generics
-from rest_framework_simplejwt.tokens import RefreshToken
-from ..serializer import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
-from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.contrib.auth import get_user_model
+
+from user.serializer import UserRegistrationSerializer, UserLoginSerializer, UserSerializer
+from user.permissions import AuthPermission
+
 
 User = get_user_model()
 
@@ -20,7 +24,7 @@ def get_tokens_for_user(user):
 
 class UserRegistrationView(generics.CreateAPIView):
     """API endpoint for user registration."""
-    permission_classes = [AllowAny]
+    permission_classes = [AuthPermission]
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
@@ -54,7 +58,7 @@ class UserLoginView(generics.GenericAPIView):
     Returns JWT access and refresh tokens on success.
     """
     serializer_class = UserLoginSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AuthPermission]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

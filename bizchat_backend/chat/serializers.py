@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from .models        import ChatRoom, Message, StatusPost
 from user.models    import CustomUser
+from typing         import Optional 
 
 
 User = get_user_model()
@@ -67,7 +68,7 @@ class StatusPostSerializer(serializers.ModelSerializer):
 
 
 class CreateRoomSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
+    user_id: Optional[int] = serializers.IntegerField()
 
     def validate_user_id(self, value):
         try:

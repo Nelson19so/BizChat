@@ -1,3 +1,4 @@
+from typing import Optional, Tuple
 
 class ChatRoomsCacheKeys:
 
@@ -9,10 +10,10 @@ class ChatRoomsCacheKeys:
 
         self.user_id = user_id
 
-    def chat_room_user_cache_key(self):
+    def chat_room_user_cache_key(self) -> str:
         return f"chat_room_user_{self.user_id}"
     
-    def message_chat_room_user_cache_key(self):
+    def message_chat_room_user_cache_key(self) -> str:
         return f"message_chat_room_user_{self.user_id}"
 
     def get_all_cache_keys(self):
@@ -20,4 +21,3 @@ class ChatRoomsCacheKeys:
             self.chat_room_user_cache_key(),
             self.message_chat_room_user_cache_key,()
         ]
-
