@@ -122,18 +122,18 @@ class SearchMyCustomersByNameView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs) -> Response:
-        search_input = request.query_params.get("search_name", '')
+        search_input: Optional[str] = request.query_params.get("search_name", '')
 
         if not search_input:
             return Response(
                 {"details": "search Name parameter is required"},
                 status=status.HTTP_400_BAD_REQUEST
-            )
+            )   
         
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        search_input = self.request.query_params.get("search_name", '')    
+        search_input: Optional[str] = self.request.query_params.get("search_name", '')    
     
         name_part = search_input.split()
 

@@ -58,7 +58,10 @@ class UserApiView(APIView):
         ).first()
 
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(
+            serializer.data, 
+            status=status.HTTP_200_OK
+        )
 
 
 class UserProfileApiView(APIView):
@@ -80,11 +83,13 @@ class UserProfileApiView(APIView):
 
         serializer.save()
 
+        serializer = UserSerializer(request.user)
+
         return Response(
             {
                 "success": True,
                 "message": "Profile updated successfully.",
-                "user": UserSerializer(request.user).data,
+                "user": serializer.data,
             },
             status=status.HTTP_200_OK,
         )
@@ -94,6 +99,12 @@ class PublicProfileApiView(APIView):
     """Public profile view for user"""
 
     def get(self, request, user_id):
+        if not user_id:
+            return Response(
+                {"details": "This user id provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         pub_user = user_queryset.filter(
             id=user_id
         ).first()
