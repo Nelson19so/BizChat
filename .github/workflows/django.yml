@@ -15,6 +15,9 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
 
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
