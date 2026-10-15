@@ -12,14 +12,14 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     # User auth endpoints
-    path('register/', UserRegistrationView.as_view(), name='register_user'),
-    path('login/', UserLoginView.as_view(), name='login_user'),
-    path('logout/', LogoutUserApiView.as_view(), name='logout_user'),
-    path('delete_myaccount/', DeleteUserApiView.as_view(), name='delete_myaccount'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('register/', UserRegistrationView.as_view(), name='register-user'),
+    path('login/', UserLoginView.as_view(), name='login-user'),
+    path('logout/', LogoutUserApiView.as_view(), name='logout-user'),
+    path('delete_myaccount/', DeleteUserApiView.as_view(), name='delete-myaccount'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     
     # User details/profile endpoints
-    path('me/', UserApiView.as_view(), name='my_accounts'),
-    path('profile/', UserProfileApiView.as_view(), name='my_accounts_profile'),
-    path('public_user/<int:user_id>/', PublicProfileApiView.as_view(), name='public_user'),
+    path('me/', UserApiView.as_view(), name='my-accounts'),
+    path('profile/', UserProfileApiView.as_view(), name='my-accounts-profile'),
+    path('public_user/<int:user_id>/', PublicProfileApiView.as_view(), name='public-user'),
 ]

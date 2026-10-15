@@ -16,6 +16,8 @@ from .serializers   import (
 from user.models import CustomUser, UserProfile
 from config.cache.cache_mixins import ChatRoomCacheMixin
 
+from typing import Tuple, Optional
+
 
 User = get_user_model()
 
@@ -43,9 +45,11 @@ messages_prefetch = Prefetch(
 
 
 # Get or create user search history for user search
-def get_or_create_user_search(user_id):
+def get_or_create_user_search(user_id: Optional[int] = None) -> Optional[
+        Tuple["UserChatRoomSearchHistory", bool]
+    ]:
     if user_id:
-        user_search = UserChatRoomSearchHistory.objects.get_or_create(
+        user_search, created = UserChatRoomSearchHistory.objects.get_or_create(
             user_id=user_id
         )
 
@@ -63,15 +67,19 @@ class UserRoomsView(ChatRoomCacheMixin, generics.ListAPIView):
     def get_queryset(self):
         user_id = self.request.user.id
 
-        queryset = self.get_room_cache()
+        queryset: Optional[str] = self.get_room_cache()
 
         if not queryset:
-            queryset = ChatRoom.objects.filter(
-                participants__id=user_id
-            ).prefetch_related(
-                participant_prefetch, 
-                messages_prefetch
-            ).distinct()
+            queryset = (
+                ChatRoom.objects.filter(
+                    participants__id=user_id
+                )
+                .prefetch_related(
+                    participant_prefetch, 
+                    messages_prefetch
+                )
+                .distinct()
+            )
 
             self.set_room_cache(
                 data=queryset, timeout=8200
@@ -103,8 +111,7 @@ class UserRoomsWithChatView(ChatRoomCacheMixin, generics.ListAPIView):
 
             # Set Chat room for user
             self.set_message_room_cache(
-                data=queryset,
-                timeout=8200
+                data=queryset, timeout=8200
             )
 
         return queryset
@@ -114,25 +121,19 @@ class SearchMyCustomersByNameView(generics.ListAPIView):
     serializer_class = SimpleUserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        search_input = request.query_params.get("search_name", '')
+    def get(self, request, *args, **kwargs) -> Response:
+        search_input: Optional[str] = request.query_params.get("search_name", '')
 
         if not search_input:
             return Response(
                 {"details": "search Name parameter is required"},
                 status=status.HTTP_400_BAD_REQUEST
-            )
+            )   
         
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        search_input = self.request.query_params.get("search_name", '')
-
-        if not search_input:
-            return Response(
-                {"details": "search Name parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        search_input: Optional[str] = self.request.query_params.get("search_name", '')    
     
         name_part = search_input.split()
 
@@ -164,7 +165,7 @@ class SearchMyCustomersByNameView(generics.ListAPIView):
             # Create a User search history
             UserChatRoomSearchHistory.objects.get_or_create(
                 user=queryset
-            )
+            )    
 
         return queryset
 
@@ -173,8 +174,8 @@ class SearchUserByPhoneNumberApiView(APIView):
     """Search user by phone number"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        search_input = request.query_params.get("phone_number")
+    def get(self, request) -> Response:
+        search_input: Optional[int] = request.query_params.get("phone_number")
 
         if not search_input or not search_input.strip():
             return Response(
@@ -182,7 +183,7 @@ class SearchUserByPhoneNumberApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        phone_number = search_input.strip()
+        phone_number: Optional[int] = search_input.strip()
 
         is_authenticated_user = UserProfile.objects.filter(
             user=request.user,
@@ -235,19 +236,32 @@ class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        room_id = request.query_params.get("room_id")
+    def get(self, request, *args, **kwargs) -> Response:
+        room_id: int | None = request.query_params.get("room_id")
+
+        response: Response = super().get(request, *args, **kwargs)
 
         if not room_id:
             return Response(
                 {"details": "room id parameter is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        room = ChatRoom.objects.filter(
+            id=room_id,
+            participants=request.user
+        )
+
+        if not room:
+            return Response(
+                {"details": "You are not a member of this room"},
+                status=status.HTTP_403_FORBIDDEN
+            )
         
-        return super().get(request, *args, **kwargs)
+        return response
 
     def get_queryset(self):
-        room_id = self.request.query_params.get("room_id")
+        room_id: Optional[int] = self.request.query_params.get("room_id")
         
         return Message.objects.filter(
             room_id=room_id
@@ -288,7 +302,7 @@ class MessageListView(generics.ListAPIView):
 class StatusListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs) -> Response:
         status_posts = StatusPost.objects.filter(
             user__chatroom__participants=request.user
         ).select_related(
@@ -320,7 +334,7 @@ class StatusListView(APIView):
 class CreateOrGetRoomView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request) -> Response:
         serializer = CreateRoomSerializer(
             data=request.data,
             context={"request": request}
@@ -328,7 +342,7 @@ class CreateOrGetRoomView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        other_user_id = serializer.validated_data['user_id']
+        other_user_id: Optional[int] = serializer.validated_data['user_id']
         current_user = request.user
 
         other_user = get_object_or_404(
