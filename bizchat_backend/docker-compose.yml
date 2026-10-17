@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      target: development
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  worker:
+    build:
+      context: .
+      target: development
+    command: celery -A bizchat_backend worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  beat:
+    build:
+      context: .
+      target: development
+    command: celery -A bizchat_backend beat --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis

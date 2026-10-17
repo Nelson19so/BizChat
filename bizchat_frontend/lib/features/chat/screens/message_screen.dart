@@ -5,7 +5,6 @@ import 'package:bizchat_frontend/core/network/api_routes.dart';
 import 'package:bizchat_frontend/core/storage/token_storage.dart';
 import 'package:bizchat_frontend/core/theme/theme.dart';
 import 'package:bizchat_frontend/core/widget/scaffholdmessage.dart';
-import 'package:bizchat_frontend/core/widget/screen_loader.dart';
 import 'package:bizchat_frontend/features/provider/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,7 +112,9 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
     _messageController.addListener(_handleMessageControllerChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final messageState = ref.watch(chatRoomsControllerProvider).isLoadingMessages;
+      final messageState = ref
+          .watch(chatRoomsControllerProvider)
+          .isLoadingMessages;
 
       if (messageState == false) {
         _scrollToBottom();
@@ -131,7 +132,6 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
     _connectWebSocket();
   }
 
-
   @override
   void dispose() {
     _channel.sink.close();
@@ -146,8 +146,7 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final messageState = ref
-        .watch(chatRoomsControllerProvider);
+    final messageState = ref.watch(chatRoomsControllerProvider);
     final historicalMessages = messageState.roomMessages;
 
     final List<Map<String, dynamic>> allMessages = [
@@ -178,8 +177,7 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
           children: [
             IconButton(
               onPressed: () async {
-                  final state = ref
-                      .read(chatRoomsControllerProvider.notifier);
+                final state = ref.read(chatRoomsControllerProvider.notifier);
 
                 await state.getUserChatRooms();
                 state.clearMessages();
@@ -247,16 +245,11 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
 
                 groupSeparatorBuilder: (DateTime date) => Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent
-                  ),
+                  decoration: BoxDecoration(color: Colors.transparent),
                   child: Text(
                     formatHeaderDate(date),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                 ),
 
@@ -264,19 +257,24 @@ class _MessageScreenState extends ConsumerState<MessageScreen> {
                   final userId = ref.watch(authControllerProvider).user?.id;
                   final isMe = message['sender_id'] == userId;
 
-                  final int currentIndex = allMessages.indexOf(message);
+                  // final int currentIndex = allMessages.indexOf(message);
 
-                  bool showTime = true;
-                  if (currentIndex < allMessages.length - 1) {
-                    final nextMessage = allMessages[currentIndex + 1];
+                  // bool showTime = true;
+                  // if (currentIndex < allMessages.length - 1) {
+                  //   final nextMessage = allMessages[currentIndex + 1];
 
-                    final currentTime = getTimeAgo(parseDate(message["timestamp"]));
-                    final nextTime = getTimeAgo(parseDate(message["timestamp"]));
+                  //   final currentTime = getTimeAgo(
+                  //     parseDate(message["timestamp"]),
+                  //   );
+                  //   final nextTime = getTimeAgo(
+                  //     parseDate(message["timestamp"]),
+                  //   );
 
-                    if (nextMessage["sender_id"] == message["sender_id"] && currentTime == nextTime) {
-                      showTime = false;
-                    }
-                  }
+                  //   if (nextMessage["sender_id"] == message["sender_id"] &&
+                  //       currentTime == nextTime) {
+                  //     showTime = false;
+                  //   }
+                  // }
 
                   return Align(
                     alignment: isMe
