@@ -655,8 +655,6 @@ Select an available emulator, simulator, or connected device.
 
 ### Connecting Flutter to Django
 
-The correct backend URL depends on where Flutter is running.
-
 Examples:
 
 - Android emulator: `http://10.0.2.2:8000`
@@ -697,8 +695,6 @@ AI_MODEL=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 ```
-
-The actual variable names must match the backend settings.
 
 ### Environment Security
 
@@ -755,8 +751,6 @@ The project should document:
 - Validation errors.
 - Pagination.
 - WebSocket connection details.
-
-API documentation may be provided through OpenAPI and Swagger UI using a compatible Django REST Framework documentation package.
 
 ---
 
@@ -867,8 +861,6 @@ Open a pull request targeting `develop`.
 
 ### Commit Guidelines
 
-Use clear, descriptive commit messages.
-
 Examples:
 
 ```text
@@ -883,8 +875,6 @@ docs: update development setup
 ---
 
 ## 16. Development Roadmap
-
-BizChat will be developed incrementally.
 
 ### Phase 1 — Project Foundation
 
@@ -939,13 +929,9 @@ BizChat will be developed incrementally.
 - Set up CI/CD.
 - Prepare a stable release.
 
-The roadmap may change as technical requirements and user feedback evolve.
-
 ---
 
 ## 17. Deployment
-
-The production environment should be separated from the local development environment.
 
 ### Production Requirements
 
@@ -967,8 +953,6 @@ Potential hosting platforms include:
 - Google Cloud Platform
 - Microsoft Azure
 - Other providers supporting Django, PostgreSQL, Redis, and WebSockets.
-
-The final hosting platform will be selected based on reliability, cost, operational complexity, and expected traffic.
 
 ### Deployment Checklist
 
