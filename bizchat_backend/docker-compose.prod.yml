@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      target: production
+    command: ./build.sh
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://postgres_user:secure_password@db:5432/prod_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_DB=prod_db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+  worker:
+    build:
+      context: .
+      target: production
+    command: celery -A bizchat_backend worker --loglevel=info
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://postgres_user:secure_password@db:5432/prod_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - db
+
+  beat:
+    build:
+      context: .
+      target: production
+    command: celery -A bizchat_backend beat --loglevel=info
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgres://postgres_user:secure_password@db:5432/prod_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - db
+
+volumes:
+  postgres_data:
+  redis_data:
