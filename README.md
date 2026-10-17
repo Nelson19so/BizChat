@@ -728,21 +728,18 @@ The initial API categories are:
 
 ### Proposed API Routes
 
-The following routes are illustrative. They must be implemented and verified before being treated as available endpoints.
-
 ```text
-/api/auth/register/
-/api/auth/login/
-/api/auth/logout/
+/api/user/register/
+/api/user/login/
+/api/user/logout/
 
 /api/users/me/
 /api/users/<user_id>/
 
-/api/conversations/
+/api/chat_list/
 /api/conversations/<conversation_id>/
 
-/api/conversations/<conversation_id>/messages/
-/api/messages/<message_id>/
+/api/chat_list/messages/
 
 /api/attachments/
 
