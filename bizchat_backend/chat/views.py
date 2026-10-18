@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.shortcuts    import get_object_or_404
 from django.db.models    import Q, Prefetch
+from django.db import transaction, IntegrityError
 
 from .models import ChatRoom, Message, StatusPost, UserChatRoomSearchHistory
 from .serializers   import (
@@ -350,27 +351,47 @@ class CreateOrGetRoomView(APIView):
             id=other_user_id
         )
 
+        # set the room unique hash based on the user ids to ensure uniqueness
+        user_ids = sorted([current_user.id, other_user.id])
+        room_hash = f"chat_{user_ids[0]}_{user_ids[1]}"
+
         # Check if room already exist
         room = (
             ChatRoom.objects
-            .filter(participants=current_user)
-            .filter(participants=other_user)
+            .filter(room_hash=room_hash)
             .first()
         )
 
         # Create room if it doesn't exist
         if room is None:
-            room = ChatRoom.objects.create()
+            try:
+                with transaction.atomic():
+                    room = ChatRoom.objects.create(room_hash=room_hash)
+                    room.participants.add(
+                        current_user, 
+                        other_user
+                    )
 
-            room.participants.add(
-                current_user, 
-                other_user
-            )
+            except IntegrityError:
+                # Check if room already exist
+                room = (
+                    ChatRoom.objects
+                    .filter(room_hash=room_hash)
+                    .first()
+                )
+
+            room_id: int = room.id
+
+            if not room or room_id is None:
+                return Response(
+                    {"details": "Failed to create room"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
         return Response(
             {
                 "success": True,
-                "room_id": room.id,
+                "room_id": room_id,
             },
             status=status.HTTP_200_OK
         )
