@@ -5,8 +5,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from .models import ChatRoom
-
+from chat.models import ChatRoom
 from user.models import UserProfile
 
 
