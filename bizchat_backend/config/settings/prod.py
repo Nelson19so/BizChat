@@ -4,8 +4,7 @@ from .base import *
 DEBUG = False
 
 # Allowed hosts for production
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [".vercel.app", 'localhost', '127.0.0.1']
 
 # Database
 DATABASES = {
@@ -24,18 +23,13 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(os.getenv('REDIS_HOST', 'localhost'), int(os.getenv('REDIS_PORT', 6379))),],
         },
     },
 }
 
 # Cors settings to allow requests from specified origins
-CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
-    "http://127.0.0.1:9000",
-]
+CORS_ALLOWED_ORIGINS = []
 
 
 # Static files (CSS, JavaScript, Images)

@@ -33,11 +33,11 @@ FROM base AS production
 # Create a non-privileged user for security
 RUN useradd -U appuser && chown -R appuser:appuser ${WORKDIR}
 
-# Copy project files into the container as root first
-COPY . .
-
 # Execute build.sh to collect static files and start the server
 RUN chmod +x build.sh
+
+# Copy project files into the container as root first
+COPY . .
 
 # Copy project files
 COPY chown -R appuser:appuser ${WORKDIR}
