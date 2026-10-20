@@ -37,7 +37,7 @@ services:
     build:
       context: .
       target: production
-    command: celery -A bizchat_backend worker --loglevel=info
+    command: celery -A config.celery_app:app worker --loglevel=info
     environment:
       - DEBUG=False
       - DATABASE_URL=postgres://postgres_user:secure_password@db:5432/prod_db
@@ -51,7 +51,7 @@ services:
     build:
       context: .
       target: production
-    command: celery -A bizchat_backend beat --loglevel=info
+    command: celery -A config.celery_app:app beat --loglevel=info
     environment:
       - DEBUG=False
       - DATABASE_URL=postgres://postgres_user:secure_password@db:5432/prod_db
