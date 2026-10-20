@@ -380,13 +380,13 @@ class CreateOrGetRoomView(APIView):
                     .first()
                 )
 
-            room_id: int = room.id
+        room_id: int = room.id
 
-            if not room or room_id is None:
-                return Response(
-                    {"details": "Failed to create room"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+        if not room or room_id is None:
+            return Response(
+                {"details": "Failed to create room"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         return Response(
             {
