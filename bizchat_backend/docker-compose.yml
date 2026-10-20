@@ -26,7 +26,7 @@ services:
     build:
       context: .
       target: development
-    command: celery -A worker --loglevel=info
+    command: celery -A config.celery_app:app worker --loglevel=info
     volumes:
       - .:/app
     environment:
@@ -40,7 +40,7 @@ services:
     build:
       context: .
       target: development
-    command: celery -A bizchat_backend beat --loglevel=info
+    command: celery -A config.celery_app:app beat --loglevel=info
     volumes:
       - .:/app
     environment:
