@@ -371,6 +371,7 @@ class CreateOrGetRoomView(APIView):
                         current_user, 
                         other_user
                     )
+                    room.save()
 
             except IntegrityError:
                 # Check if room already exist

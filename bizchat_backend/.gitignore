@@ -64,7 +64,6 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
-.folder_map.txt
 # Django migrations (optional, if you don't want to track migrations)
 # **/migrations/
 # !**/migrations/__init__.py
